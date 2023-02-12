@@ -144,9 +144,10 @@ def main(args, *kwargs):
     # check if the first argument is install or test
     if (args[0].strip() == "install"):
         install()
+    elif(args[0].strip() == "build"):
+        sys.exit(0)
 
     elif (args[0].strip() == "test"):
-
 
         # for non existant file test
         os.system('./run file_DNE > DNE_OUTPUT')
