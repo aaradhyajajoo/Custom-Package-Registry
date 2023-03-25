@@ -8,18 +8,19 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-jobs:
-  deploy:
+jobs:        
+  setup-deploy:
+    name: Setup
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-
-    - name: Build Code
-      run: |
-        # build code here
-        ./run install
-        ./run sample_url_file.txt
-        
-  
+      - uses: actions/checkout@v2
+      - name: deploy
+        id: deploy
+        uses: google-github-actions/deploy-appengine@main
+        with:
+          credentials: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.PROJECT_ID }}
+          version: v1
+          deliverables: 'yaml_dir/app.yaml yaml_dir/apiAppEngine.yaml'
