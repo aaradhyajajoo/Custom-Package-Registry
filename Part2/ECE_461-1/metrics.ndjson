@@ -1,0 +1,5 @@
+{"metric":"RAMP_UP_SCORE", "api":"clone", "filepath":"cloning_repos/convert_to_git", "line":24}
+{"metric":"CORRECTNESS_SCORE", "api":"graphql", "filepath":"compiledqueries.py", "line":71}
+{"metric":"BUS_FACTOR_SCORE", "api":"graphql", "filepath":"compiledqueries.py", "line":44}
+{"metric":"RESPONSIVE_MAINTAINER_SCORE", "api":"graphql", "filepath":"compiledqueries.py", "line":110}
+{"metric":"LICENSE_SCORE", "api":"rest", "filepath":"restapi/restapi.ts", "line":9}

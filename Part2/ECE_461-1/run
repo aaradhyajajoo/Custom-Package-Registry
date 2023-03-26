@@ -1,0 +1,38 @@
+if [[ -f $1 ]]; then 
+    if [[ -z "${GITHUB_TOKEN}" ]]; then
+        echo 'Please set github_token environment variable';
+    else
+        > outfile.txt && node ./restapi/restapi.js $1 && node ./cloning_repos/convert_to_git.js $1 && python3 ./cloning_repos/github_query_clone.py && python3 compiledqueries.py && cat outfile.txt && rm ./cloning_repos/git_urls.txt && rm -r -f ./cloning_repos/cloned_repo* && rm license.txt && rm rampup_time.txt && echo "./run $1 ----> running software on a text file of urls" >> logs/logfile.log && export LOG_LEVEL=1 && export LOG_FILE="logs/logfile.log"; 
+    fi
+elif [[ $1 == 'install' ]]; then 
+    npm install typescript && npm install ts-node && npm install octokit && npm install fs && pip install requests && pip install gitpython && pip install DateTime && npm install node-fetch@2
+    echo ''
+    echo 'All dependencies installed!';
+    echo "./run install ----> 8 Dependencies installed: " >> logs/logfile.log
+    echo "                    ts-node, typescript, octokit, fs, requests, gitpython, DateTime, node-fetch v2" >> logs/logfile.log
+    export LOG_LEVEL=1 && export LOG_FILE="logs/logfile.log";
+elif [[ $1 == 'build' ]]; then
+    ./restapi/restapi.ts && ./cloning_repos/convert_to_git.ts && echo "./run build ----> compiling typescript files to javascript" >> logs/logfile.log && export LOG_FILE="logs/logfile.log";
+elif [[ $1 == 'test' ]]; then
+    equiv=$(awk 'a[$0]++' outfile.txt test_folder/expected_output.txt | wc -l)
+    echo  Total: 21
+    echo  Passed: $equiv
+    echo  Coverage: -1
+    echo $equiv / 21 test cases passed. -1 Line coverage achieved;
+    echo "./run test  ----> comparing expected output file to output file, based on urls_for_test.txt" >> logs/logfile.log
+    > outfile.txt
+    export LOG_LEVEL=1
+    export LOG_FILE="logs/logfile.log";
+else 
+    echo ""
+    echo "Error: Not a supported command, here are a list of commands:"
+    echo "-- ./run install: Installs all dependencies to run the software, python modules, nodejs modules, and typescript modules"
+    echo "-- ./run build: Does any necessary compilation for code (Compiles Typescript code to Javascript)"
+    echo "-- ./run (path to url_file.txt): Runs the software for all github and npm repositories to give scores, prints to stdout"
+    echo "-- ./run test: runs a list of test urls against given scores based on our metrics and compares how many are correct, and" 
+    echo "               how much line coverage is used"
+    echo "ERROR: Unrecognized command in Command Line, see stdout for details" >> logs/logfile.log
+    export LOG_LEVEL=1;
+    export LOG_FILE="logs/logfile.log";
+    exit 1;
+fi
