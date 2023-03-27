@@ -1,38 +1,47 @@
-
-def get_package_version(package_name):
-    try:
-        return pkg_resources.get_distribution(package_name).version
-    except pkg_resources.DistributionNotFound:
-        return None
-        
-import requests
+import zipfile
 import re
 
-def calculate_dependency_pinning(package_name, specific_version):
-    # Get the package's metadata from PyPI
-    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
-    data = response.json()
+def get_package_name(package_file):
+    """Extract the package name from a zipped package file"""
+    with zipfile.ZipFile(package_file, 'r') as z:
+        for filename in z.namelist():
+            if filename.endswith('setup.py'):
+                with z.open(filename) as f:
+                    setup_content = f.read().decode('utf-8')
+                    match = re.search(r'name\s*=\s*[\'"]([^\'"]+)[\'"]', setup_content)
+                    if match:
+                        return match.group(1)
+    return None
 
-    # Extract the dependencies from the metadata
-    dependencies = []
-    if "dependencies" in data["info"]:
-        dependencies += data["info"]["dependencies"]
-    if "dev_dependencies" in data["info"]:
-        dependencies += data["info"]["dev_dependencies"]
+def unzip_package(file_path, target_dir):
+    """Unzip a package to the target directory"""
+    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        zip_ref.extractall(target_dir)
 
-    # Count the number of dependencies that are pinned to the specific version
-    pinned_count = 0
-    for dependency in dependencies:
-        match = re.search(f"{specific_version}\\b", dependency)
-        if match:
-            pinned_count += 1
 
-    # Calculate the rating based on the pinned count
-    if len(dependencies) == 0:
-        rating = 1.0
-    else:
-        rating = pinned_count / len(dependencies)
+def calculate_dependency_metric(package_file):
+    """Calculate the fraction of dependencies that are pinned to a specific major+minor version"""
+    target_dir = 'temp_unzip_dir'
+    unzip_package(package_file, target_dir)
+    requirements_file = os.path.join(target_dir, 'requirements.txt')
+    if not os.path.exists(requirements_file):
+        return 1.0
+    with open(requirements_file, 'r') as f:
+        lines = f.readlines()
+        if len(lines) == 0:
+            return 1.0
+        num_deps = len(lines)
+        num_pinned_deps = 0
+        for line in lines:
+            match = re.search(r'==(\d+\.\d+)', line)
+            if match:
+                version = match.group(1)
+                if version.startswith('2.3.'):
+                    num_pinned_deps += 1
+        return float(num_pinned_deps) / num_deps
 
-    return rating
-
+def get_package_url(package_name):
+    """Get the URL of a package on GitHub"""
+    # Replace this with your own logic for obtaining the URL
+    return f'https://github.com/{package_name}'
 
