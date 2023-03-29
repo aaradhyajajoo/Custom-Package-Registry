@@ -13,5 +13,21 @@ We used main.py to evaluate the user input, and direct the program to the correc
 
  Net_Score = (0.4 * responsiveness + 0.1 * bus factor + 0.2 * license compatibility + 0.1 * ramp-up time + 0.2 * correctness) /  5
  
+ There is an executable file in the root directory of th project called "run".
+ It should has the following CLI when executed on a Linux machine:
+ 
+ ./run install
+  Installs any dependencies in userland
+ 
+ ./run build
+   Completes any compilation needed
+ 
+./run URL_FILE
+ where URL_FILE is the absolute location of a file consisting of an ASCII-encoded newline-delimited set of URLs
+ This invocation produces NDJSON output. Each row should include the fields: “URL”, “NetScore”, “RampUp”, “Correctness”, “BusFactor”, “ResponsiveMaintainer”, and “License
+ 
+ 
+
+ 
  
   
