@@ -1,1 +1,1 @@
-pass
+print("Firestore.py file access")

@@ -1,0 +1,6 @@
+GitPython
+regex
+pytest
+requests
+pytest-cov
+firebase-admin

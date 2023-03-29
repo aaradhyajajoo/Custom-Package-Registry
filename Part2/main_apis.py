@@ -58,8 +58,8 @@ def create():
     print(f'Json stored in the db = {json_store}')
     # ref.delete() # Deletes every node in the DB
 
-    if json_store == None:
-        print('DB is empty, adding new data')
+    if json_store == None or json_store.values() != package:
+        print('Adding new data')
         ref.push(package) # Upload data to package
     else: # If packages already exist in the DB
         unique_id_list = []
@@ -154,7 +154,7 @@ def reset_registry():
     ref = db.reference('packages')
     ref.delete()
 
-    return json.dumps({'success':True}),200 # Check return value
+    return json.dumps('Registry is reset.'),200 # Check return value
 
 # GET, PUT, DELETE - Package with given ID in endpoint
 @app.route('/package/<id>', methods = ['GET', 'PUT', 'DELETE'])
@@ -170,13 +170,17 @@ def package_given_id(id):
     if request.method == 'PUT':
         return PackageUpdate(id)
     if request.method == 'DELETE':
-        # return (id)
-        pass
+        return PackageDelete(id)
+       
+        
 
 # Test Command: curl --location --request GET 'http://127.0.0.1:8080/package/underscore' --header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --data '{"metadata": {"Name": "Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 def PackageRetrieve(id):
     ref = db.reference('packages')
     all_packages = ref.get()
+
+    if not all_packages:
+        return err.malformed_req()
 
     for p_data in all_packages.values():
         metadata = p_data['metadata']
@@ -218,6 +222,20 @@ def PackageUpdate(id):
     ref.update(update_data) # Updates DB
 
     return json.dumps({'Success':'True'}),200
+
+def PackageDelete(id):
+    ref = db.reference('packages')
+    all_packages = ref.get()
+    if not all_packages:
+        return err.malformed_req() # DB is empty
+
+    for firestoreID, p_data in all_packages.items():
+        metadata = p_data['metadata']
+        if id == metadata['ID']:
+            package_ref = ref.child(firestoreID)
+            package_ref.delete()
+
+    return json.dumps('Package is deleted.'),200 # Check return value
 
 
 
