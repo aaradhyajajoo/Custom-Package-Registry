@@ -1,243 +1,240 @@
-#!/usr/bin/ python3
+'''Import Statements'''
+# https://github.com/Purdue-ECE-461/project-2-3/blob/main/api/main.py 
 
-import sys
-import os
-import time
+# # Flask
+# from flask import Flask, request
+# import json
 
+# # Errors
+# from errors import Err_Class
+# err = Err_Class()
 
-def license_name(file_name):
-    # read the file
-    urls = []
-    with open(file_name, 'r') as f:
-        lines = f.readlines()
-        for line in lines:
-            urls.append(line.strip())
+# app = Flask(__name__) # Initializing Flask app
 
-    # get the license name
-    import requests
+# # Firestore
+# import firebase_admin
+# from firebase_admin import credentials
+# from firebase_admin import db
 
-    if  os.environ.get("GITHUB_TOKEN") == None:
-        print("Could not find GITHUB_TOKEN")
-        sys.exit(1)
-
-
-    headers = {
-        "Authorization": "Bearer " + os.environ.get("GITHUB_TOKEN")
-    }
-    license_name =  ""
-    open('src/license.txt','w').close()
-    for url in urls:
-        if "github.com" in url:
-            # get data from api.github.com/repo/ using request
-            owner = url.split("/")[3]
-            repo = url.split("/")[4]
-
-            # get the license name
-            # use environment variable to get the token from the user GITHUB_TOKEN and use that token to make the request
-            request_url = "https://api.github.com/repos/" + owner + "/" + repo
-            response = requests.get(request_url, headers=headers)
-            data = response.json()
-            if ("license" not in data.keys()):
-                license_name = "None"
-            else:
-                if (data['license'] == None):
-                    license_name = "None"
-                else:
-                    # print(data)
-                    license_name = data["license"]["name"]
-            
-        elif "npmjs.com" in url:
-            repo = url.split("/")[4]
-            request_url = "https://replicate.npmjs.com/" + repo
-            response = requests.get(request_url)
-            # Extract Data from the URL
-            data = response.json()
-            npmjs_urls = data['repository']['url']
-            npmjs_urls = npmjs_urls.split('//')
-            # This to remove "@" symbol from the
-            npmjs_urls = npmjs_urls[1].split('@')
-            if (len(npmjs_urls) > 1):
-                npmjs_urls = npmjs_urls[1]
-            if (type(npmjs_urls) == list):
-                npmjs_urls = npmjs_urls[0]
-            npmjs_urls = npmjs_urls.replace('.git', '')
-            request_url = "https://api.github.com/repos/" + owner + "/" + repo
-            response = requests.get(request_url, headers=headers)
-            data = response.json()
-            if ("license" not in data.keys()):
-                license_name = "None"
-            else:
-                if (data['license'] == "None"):
-                    license_name = "None"
-                else:
-                    license_name = data["license"]["name"]
-
-            # with open('src/license.txt', 'a+') as f:
-            #     f.write(license_name)
-            #     f.write('\n')
-        else:
-            print(f"Invalid URL:")
-            print(url)
-            sys.exit(1)           
-
-        with open('src/license.txt', 'a+') as f:
-            f.write(license_name)
-            f.write('\n')
-        # print(license_name)
+# '''Global Variable(s)'''
+# PROJECT_ID = "ece-461-ae1a9" # Project ID on GCP
 
 
-def ramp_Up():
-    # Clone the repository
-    import git
-    if (os.path.exists("Useless")):
-        os.system("rm -rf Useless")
+# '''Initialize Firebase Admin SDK with your project's service account credentials'''
 
-    os.system("mkdir Useless")
-    repo = git.Repo.clone_from(
-        "https://github.com/aaradhyajajoo/ECE_461.git", "./Useless")
-    repo.remote().pull()
+# cred = credentials.Certificate('ece-461-ae1a9-firebase-adminsdk-602lt-2aa8f39403.json') # Put path of json file that contains GCP private key
+# firebase_admin.initialize_app(cred, {
+#      'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
+# })
 
-    i = 0
-    for commit in repo.iter_commits():  # iter_commits starts from the latest commit
-        first_commit = commit
-        i += 1
+# '''Endpoints'''
 
-    current_commit = repo.commit()
+# # Test Command: curl -H "Content-Type: application/json" --location 'http://127.0.0.1:8080/package' --header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --data '{"metadata":{"Name":"Underscore","Version":"1.0.0","ID":"underscore"},"data":{"Content":"checking_content","JSProgram":"if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
+# # POST Package Create and POST Package Ingest
+# @app.route('/package/', methods=['POST'])
+# def create():
+    
+#     # Checks Authorization
+#     authorization = None
+#     authorization = request.headers.get("X-Authorization")
+#     if(authorization == None):
+#         return err.auth_failure() 
 
-    start_time = int(first_commit.committed_datetime.timestamp())
-    end_time = int(current_commit.committed_datetime.timestamp())
+#     # Gets the JSON data from the request
+#     data = request.get_json()
+#     metadata = data['metadata']
+#     ID = metadata['ID']
+#     data_field = data['data']
+#     package = {
+#     'metadata': metadata,
+#     'data': data_field
+#     }
+#     if not ID:
+#         return err.malformed_req()
 
-    # Calculate the ramp-up time
-    ramp_up_time = end_time - start_time
-    total_time = time.time() - start_time
-    normalized_ramp_up_time = ramp_up_time / total_time
+#     ref = db.reference('packages') # Reference to node in Firebase
+#     json_store = ref.get() # Gets the data in the DB
+#     print(f'Json stored in the db = {json_store}')
+#     # ref.delete() # Deletes every node in the DB
 
-    with open('src/ramp_up.txt', 'w') as f:
-        f.write(str(round(normalized_ramp_up_time, 2)))
+#     if json_store == None:
+#         print('DB is empty, adding new data')
+#         ref.push(package) # Upload data to package
+#     else: # If packages already exist in the DB
+#         unique_id_list = []
+#         firebaseIDs_list = []
 
-    # os.system("rm -rf Useless/.git/objects/pack/")
-    # os.system("rm -rf Useless")
+#         # Extracts the IDs of the metadata in the DB
+#         for ids in json_store.keys():
+#             firebaseIDs_list.append(ids)
+#             unique_id_list.append(json_store[ids]['metadata']['ID'])
 
-# install function
+#         # print(f'Unique id list = {unique_id_list}')
+#         if ID in unique_id_list:
+#             # Ingestion - Add/Update the Firebase Database
+#             i = unique_id_list.index(ID)
+#             firebaseID = firebaseIDs_list[i] # Gets firebase ID 
 
+#             if 'URL' in list(data_field.keys()):
+#                 # print(f'json_store[ID] = {json_store[firebaseID]}')
+#                 # print(f'metadata = {metadata}')
 
-def install():
-    os.system("npm --silent --no-progress install")
-    os.system("npm --silent --no-progress install typescript")
-    os.system("npm --silent --no-progress install ts-node")
-    os.system("npm --silent --no-progress install ts-node-dev")
-    os.system("npm --silent --no-progress install --save-dev jest")
-    os.system("pip install -q -r requirements.txt > /dev/null 2>&1")
-    # os.system("ts-node src/install.ts > /dev/null 2>&1")
-    os.system("tsc src/install.ts")
-    os.system("node src/install.js")
-    sys.exit(0)
+#                 # Check if (URL does not exist in the DB) or if (it does then the one being uploaded is different)
+#                 if (metadata == json_store[firebaseID]['metadata'] and 'URL' not in json_store[firebaseID]['data']) or (metadata == json_store[firebaseID]['metadata'] and 'URL' in json_store[firebaseID]['data'] and data_field['URL'] != json_store[firebaseID]['data']['URL']):
+#                     print('Ingestion required')
+#                     ref = db.reference('packages/' + firebaseID) 
+#                     update_data = {
+#                     'data': {
+#                         'URL': data_field['URL'],
+#                         **ref.child('data').get()  # Merge with existing data
+#                     }
+#                 }
+#                     ref.update(update_data) # Updates DB
+#                     return json.dumps(metadata)
+#                 else:
+#                     return err.package_exists() 
 
+#     return json.dumps(metadata),200
 
-def main(args, *kwargs):
+# # Test Command:  curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --header 'Content-Type: application/json' --data '[{"Version":"1.2.3","Name":"Underscore"},{"Version":"1.2.3-2.1.0","Name":"Lodash"}]'
+# # Modify "Name":"*" to test return of all packages 
+# # POST Get Packages
+# @app.route('/packages/', methods=['POST'])
+# def list_of_packages():
+#     # Checks Authorization
+#     authorization = None
+#     authorization = request.headers.get("X-Authorization")
+#     if(authorization == None):
+#         return err.auth_failure() 
 
-    # no arguments provided
-    if (len(args) == 0):
-        print("No arguments provided")
-        sys.exit("1")
+#     # Gets package query from request body
+#     package_queries = request.json
+#     print(f'Package Queries = {package_queries}')
+#     if not package_queries:
+#         return err.unexpected_error()
+#     offset = request.args.get('offset', default=0, type=int)
+    
+#     check_error = False
+#     pack_list = [] # List of packages to be returned
+#     ref = db.reference('packages')
+#     all_packages = ref.get() # Gets the firebaseIDs as keys and the values as the packages we need
+#     for query in package_queries:
+#         # Returning all packages
+#         if query['Name'] == "*": # As given in specsv2
+#             for package in all_packages.values():
+#                 pack_list.append(package['metadata'])
+#         # Returning specific packages
+#         else:
+#             length = len(pack_list)
+#             for package in all_packages.values(): # Checking all packages in the DB for each query
+#                 if query['Name'] == package['metadata']['Name']:
+#                     pack_list.append(package['metadata'])
+#                     break # Move to the next query if found
 
-    # check if the first argument is install or test
-    if (args[0].strip() == "install"):
-        install()
-    elif(args[0].strip() == "build"):
-        sys.exit(0)
-
-    elif (args[0].strip() == "test"):
-
-        # for non existant file test
-        os.system('./run file_DNE > DNE_OUTPUT')
-
-        # for bad url test
-        os.system('echo "youtube.com" > invalid_file')
-        os.system('./run invalid_file > OUTPUT')
-        os.system('./run sample_url_file.txt > OUTPUT2')
-        # for duplicate test
-        os.system('cat sample_url_file.txt > CONC')
-        os.system('cat sample_url_file.txt >> CONC')
-        os.system('./run sample_url_file.txt > OUTPUT3')
-
-        time.sleep(10)
-
-        # runs unit test
-        os.system("python3 -m pytest run_test.py --tb=no --cov > PYTEST_RESULTS")
-        with open('PYTEST_RESULTS', 'r') as file:
-            test_string = file.read().replace('\n', '')
-
-        import regex as re
-
-        # interprets results of unit tests
-        results = re.search(r"(\d+) failed", test_string)
-        num_fail = 0 if results == None else int(results.group(1))
-        results = re.search(r"(\d+) passed", test_string)
-        num_pass = 0 if results == None else int(results.group(1))
-        print(f"Total: {num_fail + num_pass}")
-        print(f"Passed: {num_pass}")
-        results = re.findall(r"\d+%", test_string)
-        print(f"Coverage: {results[-1]}")
-        print(
-            f'{num_pass}/{num_fail + num_pass} test cases passed. {results[-1]} line coverage achieved.')
+#             if length == len(pack_list): # Unexpected error
+#                 pack_list.append({"code": -1,"message": "An unexpected error occurred"})
+#                 check_error = True
         
-        os.system('rm OUTPUT')
-        os.system('rm OUTPUT2')
-        os.system('rm OUTPUT3')
-        os.system('rm CONC')
-        os.system('rm DNE_OUTPUT')
-        sys.exit(0)
+#         if check_error:
+#             return json.dumps(pack_list),500
+#         else:
+#             return json.dumps(pack_list),200
 
-    # default test: check if the files exist
-    else:
-        check_files_exists(args, *kwargs)
-        ramp_Up()
-        license_name(args[0].strip())
-        # os.system(f"ts-node src/graph_api_call.ts {args[0]}")
-        os.system(f"tsc src/graph_api_call.ts")
-        os.system(f"node src/graph_api_call.js {args[0]}")
+# # Test Command: curl --location --request DELETE 'http://127.0.0.1:8080/reset' --header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+# # DELETE Reset Registry
+# @app.route('/reset/', methods = ['DELETE'])
+# def reset_registry():
+#     # Checks Authorization
+#     authorization = None
+#     authorization = request.headers.get("X-Authorization")
+#     if(authorization == None):
+#         return err.no_permission()
+    
+#     ref = db.reference('packages')
+#     ref.delete()
 
-        if (not os.path.exists('results.txt')):
-            sys.exit(1)
+#     return json.dumps({'success':True}),200 # Check return value
 
-        # Printing Ordered List of URLs
-        with open('results.txt', 'r') as file:
-            results = eval(file.read())
-            sorted_results = dict(
-                sorted(results.items(), key=lambda item: float(item[0]), reverse=True))
-            for key, value in sorted_results.items():
-                repo_URL = value[0]
-                net_score = key
-                ramp_upTime = value[1]
-                correctness = value[2]
-                bus_factor = value[3]
-                responsiveness = value[4]
-                license_compatibility = value[5]
-                print("{\"URL\":\"" + repo_URL + "\", \"NET_SCORE\":" + str(net_score) + ", \"RAMP_UP_SCORE\":" + str(ramp_upTime) + ", \"CORRECTNESS_SCORE\":" + str(correctness) +
-                      ", \"BUS_FACTOR_SCORE\":" + str(bus_factor) + ", \"RESPONSIVE_MAINTAINER_SCORE\":" + str(responsiveness) + ", \"LICENSE_SCORE\":" + str(license_compatibility) + "}")
+# # GET, PUT, DELETE - Package with given ID in endpoint
+# @app.route('/package/<id>', methods = ['GET', 'PUT', 'DELETE'])
+# def package_given_id(id):
+#     # Checks Authorization
+#     authorization = None
+#     authorization = request.headers.get("X-Authorization")
 
-        os.system('rm results.txt')
-        sys.exit(0)
+#     if(authorization == None):
+#         return err.auth_failure()
+#     if request.method == 'GET':
+#         return PackageRetrieve(id)
+#     if request.method == 'PUT':
+#         return PackageUpdate(id)
+#     if request.method == 'DELETE':
+#         # return (id)
+#         pass
 
-# check if the files with the input path exist
+# # Test Command: curl --location --request GET 'http://127.0.0.1:8080/package/underscore' --header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --data '{"metadata": {"Name": "Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
+# def PackageRetrieve(id):
+#     ref = db.reference('packages')
+#     all_packages = ref.get()
+
+#     for p_data in all_packages.values():
+#         metadata = p_data['metadata']
+#         if id == metadata['ID']:
+#             return json.dumps(metadata),200
+#     return err.package_doesNot_exist()
+
+# # Test Command: curl -H "Content-Type: application/json" --location --request PUT 'http://127.0.0.1:8080/package/underscore'--header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --data '{"metadata": {"Name": "Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
+# def PackageUpdate(id):
+#     ref = db.reference('packages')
+#     all_packages = ref.get()
+
+#     data = request.json
+#     id_exists = False
+
+#     # Gets firebaseID of the package (metadata in this case) that we need to update
+#     print(all_packages.items())
+#     for firebaseID, p_data in all_packages.items():
+#         metadata = p_data['metadata']
+#         if id == metadata['ID']:
+#             id_exists = True
+#             break
+
+#     if not id_exists:
+#         return err.malformed_req()
+#     if (metadata['Name'] != data['metadata']['Name']) or (metadata['Version'] != data['metadata']['Version']) or (metadata['ID'] != data['metadata']['ID']):
+#         return err.package_doesNot_exist()
 
 
-def check_files_exists(args):
+#     # Updating the specific child node in the DB 
+#     ref = db.reference('packages/'+firebaseID) 
+#     update_data = {
+#                     'data': {
+#                         'URL': data['data']['URL'],
+#                         'Content': data['data']['Content'],
+#                         'JSProgram': data['data']['JSProgram']
+#                     }
+#                 }
+#     ref.update(update_data) # Updates DB
 
-    # no files provided
-    if (len(args) == 0):
-        sys.exit("No files provided")
+#     return json.dumps({'Success':'True'}),200
 
-    # check if the files exist
-    for arg in args:
-        arg = arg.strip()
-        if not os.path.exists(arg):
-            print(f"File {arg} does not exist")
-            sys.exit(1)
-        else:
-            continue
+# @app.route('/')
+# def index():
+#     return 'Hello, World!'
 
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=8080)
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return 'Hello, World!'
+
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
+
