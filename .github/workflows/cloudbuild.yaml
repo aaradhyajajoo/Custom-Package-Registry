@@ -31,9 +31,7 @@ jobs:
           pip install -r requirements.txt
           gcloud components install cloud-datastore-emulator beta --quiet
 
-      - name: Deploy to app engine
-        uses: google-github-actions/deploy-appengine@v0.2.0
-        with:
-          deliverables: app.yaml
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          credentials: ${{ secrets.GCP_SA_KEY }}
+      - name: "gcr.io/cloud-builders/gcloud"
+        args: ["app", "deploy", "app.yaml"]
+        env:
+          - "CLOUD_BUILD_TIMEOUT=3600s"
