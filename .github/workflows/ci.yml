@@ -1,9 +1,12 @@
-name: CI
-
+name: Continuous Integration 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+
 
 jobs:
   build:
@@ -12,29 +15,13 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
+    - name: install pep8
+      run : pip install flake8
+    - name : run flake8
+      run : |
+        cd Part2/
+        flake8 . 
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 14
+ 
 
-    - name: Install dependencies
-      run: |
-        ./run install
-
-    - name: Build TypeScript
-      run: |
-        npx tsc
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-
-    # - name: Install Python dependencies
-    #   run: |
-    #     pip install -r requirements.txt
-
-    # - name: Run Python tests
-    #   run: |
-    #     pytest
+ 
