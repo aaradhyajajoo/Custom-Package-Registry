@@ -1,6 +1,7 @@
 import zipfile
 import re
 
+
 def get_package_name(package_file):
     """Extract the package name from a zipped package file"""
     with zipfile.ZipFile(package_file, 'r') as z:
@@ -74,4 +75,6 @@ def calculate_reviewed_code_fraction(package_github_url):
         for file in commit.files:
             total_lines += file.changes
     return float(reviewed_lines) / total_lines if total_lines > 0 else 0.0
+
+
 

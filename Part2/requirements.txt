@@ -3,3 +3,5 @@ gunicorn==20.1.0
 firebase-admin
 google-cloud
 google-cloud-secret-manager
+flake8
+autopep8
