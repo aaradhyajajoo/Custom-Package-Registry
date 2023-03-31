@@ -4,6 +4,7 @@
 # Flask
 from flask import Flask, request
 import json
+import os
 
 # Errors
 from errors import Err_Class
@@ -21,8 +22,9 @@ PROJECT_ID = "ece-461-ae1a9" # Project ID on GCP
 
 
 '''Initialize Firebase Admin SDK with your project's service account credentials''' # ***-firebase-adminsdk-602lt-2aa8f39403.json
+cred_file = os.environ['GCP_SA_KEY']
 
-cred = credentials.Certificate('../serviceAccKey.json') 
+cred = credentials.Certificate(cred_file) 
 firebase_admin.initialize_app(cred, {
      'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
