@@ -20,7 +20,8 @@ jobs:
     - name : run flake8
       run : |
         cd Part2/
-        flake8 . 
+        flake8 --exclude=ECE_461-1/ . 
+        
 
  
 
