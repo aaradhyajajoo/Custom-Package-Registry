@@ -22,7 +22,7 @@ PROJECT_ID = "ece-461-ae1a9" # Project ID on GCP
 
 '''Initialize Firebase Admin SDK with your project's service account credentials''' # ***-firebase-adminsdk-602lt-2aa8f39403.json
 
-cred = credentials.Certificate('../ece-461-ae1a9-firebase-adminsdk-602lt-2aa8f39403.json') # Put path of json file that contains GCP private key
+cred = credentials.Certificate('../serviceAccKey.json') # Put path of json file that contains GCP private key
 firebase_admin.initialize_app(cred, {
      'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
