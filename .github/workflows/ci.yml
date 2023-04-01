@@ -27,7 +27,7 @@ jobs:
     - name : set env variables
       run : |
         echo "${{ secrets.GCP_SA_KEY }}" > key.json
-        export GCP_CREDS=key.json
+        export GCP_CREDS="$(cat key.json)"
     - name : run tests
       env:
         GCP_CREDS: ${{ env.GCP_CREDS }}
