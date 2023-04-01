@@ -27,6 +27,7 @@ jobs:
     - name : run tests
       run: | 
         cd Part2/
+        pip -r install requirements.txt
         python3 main.py
         sleep 10
         python3 -m unittest test_apis.py
