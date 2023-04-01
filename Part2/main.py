@@ -57,7 +57,7 @@ def create():
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
-    if(authorization == None):
+    if authorization is None:
         return err.auth_failure()
     return err.success()
 
@@ -125,7 +125,7 @@ def list_of_packages():
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
-    if(authorization == None):
+    if authorization is None:
         return err.auth_failure()
 
     # Gets package query from request body
@@ -167,7 +167,7 @@ def reset_registry():
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
-    if(authorization == None):
+    if authorization is None:
         return err.no_permission()
         '''ref = db.reference('packages')
     ref.delete()'''
@@ -180,7 +180,7 @@ def package_given_id(id):
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
-    if(authorization == None):
+    if authorization is None:
         return err.auth_failure()
     if request.method == 'GET':
         return PackageRetrieve(id)
