@@ -23,7 +23,7 @@ PROJECT_ID = 'ece-461-ae1a9' # Project ID on GCP
 
 '''Initialize Firebase Admin SDK with your project's service account credentials'''
  # ***-firebase-adminsdk-602lt-2aa8f39403.json
-cred_file = get_sa_key()
+# cred_file = get_sa_key()
 
 cred = credentials.Certificate(cred_file) 
 firebase_admin.initialize_app(cred, {
