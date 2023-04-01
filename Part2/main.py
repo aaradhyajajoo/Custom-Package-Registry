@@ -95,7 +95,6 @@ def create():
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
             firebaseID = firebaseIDs_list[i] # Gets firebase ID 
-
             if 'URL' in list(data_field.keys()):
                 # print(f'json_store[ID] = {json_store[firebaseID]}')
                 # print(f'metadata = {metadata}')
@@ -107,7 +106,7 @@ def create():
                     ref = db.reference('packages/' + firebaseID) 
                     update_data = {
                     'data': {
-                        'URL': data_field['URL'],
+                       'URL': data_field['URL'],
                         **ref.child('data').get()  # Merge with existing data
                     }
                 }
@@ -117,7 +116,6 @@ def create():
                     return err.package_exists() 
     
     return json.dumps(metadata),200'''
-
 # Test Command:  curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
 #eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' \
 # --header 'Content-Type: application/json' --data '[{"Version":"1.2.3","Name":"Underscore"},{"Version":"1.2.3-2.1.0","Name":"Lodash"}]'
@@ -164,7 +162,6 @@ def list_of_packages():
             return json.dumps(pack_list),500
         else:
             return json.dumps(pack_list),200'''
-
 # Test Command: curl --location --request DELETE 'http://127.0.0.1:8080/reset' --header /
 # 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI /
 #6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
@@ -255,10 +252,9 @@ def PackageUpdate(id):
 
     return json.dumps({'Success':'True'}),200'''
 
-
 @app.route('/')
 def index():
-    return 'Hello, from Aaradhya, Eshaan, Tanvi and Ilan!'
+ return 'Hello, from Aaradhya, Eshaan, Tanvi and Ilan!'
 
 if __name__ == '__main__':
     #import os
