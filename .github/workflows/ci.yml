@@ -24,6 +24,10 @@ jobs:
         autopep8 Part2/ --recursive --in-place
         cd Part2/
         flake8 --exclude=ECE_461-1/ --max-line-length=460 --ignore=F401,E501,E711,F841,W503,E226 .
+    - name : set env variables
+      run : |
+        echo ${{ secrets.GCP_SA_KEY }} > key.json
+        export GCP_CREDS=key.json
     - name : run tests
       run: | 
         cd Part2/

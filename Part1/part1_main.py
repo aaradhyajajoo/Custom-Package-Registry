@@ -45,7 +45,7 @@ def license_name(file_name):
                 else:
                     # print(data)
                     license_name = data["license"]["name"]
-            
+            os.sys
         elif "npmjs.com" in url:
             repo = url.split("/")[4]
             request_url = "https://replicate.npmjs.com/" + repo

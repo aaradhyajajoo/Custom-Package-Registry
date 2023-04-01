@@ -24,8 +24,20 @@ PROJECT_ID = 'ece-461-ae1a9' # Project ID on GCP
 '''Initialize Firebase Admin SDK with your project's service account credentials'''
  # ***-firebase-adminsdk-602lt-2aa8f39403.json
 # cred_file = get_sa_key()
+os.system("./env_variable.sh")
+firebase_config = {
+    "type": os.environ["FIREBASE_TYPE"],
+    "project_id": os.environ["FIREBASE_PROJECT_ID"],
+    "private_key_id": os.environ["FIREBASE_PRIVATE_KEY_ID"],
+    "private_key": os.environ["FIREBASE_PRIVATE_KEY"]
+    "client_email": os.environ["FIREBASE_CLIENT_EMAIL"],
+    "client_id": os.environ["FIREBASE_CLIENT_ID"],
+    "auth_uri": os.environ["FIREBASE_AUTH_URI"]
+}
+# cred = credentials.Certificate(firebase_config) 
+service_account_info = json.loads(os.environ['GCP_CREDS'])
+cred = service_account.Credentials.from_service_account_info(service_account_info)
 
-cred = credentials.Certificate(cred_file) 
 firebase_admin.initialize_app(cred, {
      'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
