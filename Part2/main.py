@@ -8,7 +8,6 @@ import os
 from google.cloud import secretmanager
 from google.oauth2 import service_account
 
-
 # Errors
 from errors import Err_Class
 err = Err_Class()
