@@ -21,7 +21,7 @@ jobs:
       run : pip install autopep8
     - name : run flake8
       run : |
-        autopep8 Part2/--recursive --in-place
+        autopep8 Part2/ --recursive --in-place
         cd Part2/
         flake8 --exclude=ECE_461-1/ . 
     
