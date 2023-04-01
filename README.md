@@ -16,16 +16,43 @@ We used main.py to evaluate the user input, and direct the program to the correc
  There is an executable file in the root directory of th project called "run".
  It should has the following CLI when executed on a Linux machine:
  
- ./run install
-  Installs any dependencies in userland
+- ./run install
+- Installs any dependencies in userland
  
- ./run build
+- ./run build
    Completes any compilation needed
  
-./run URL_FILE
+- ./run URL_FILE
  where URL_FILE is the absolute location of a file consisting of an ASCII-encoded newline-delimited set of URLs
- This invocation produces NDJSON output. Each row should include the fields: “URL”, “NetScore”, “RampUp”, “Correctness”, “BusFactor”, “ResponsiveMaintainer”, and “License
+ This invocation produces NDJSON output. Each row includes the fields: “URL”, “NetScore”, “RampUp”, “Correctness”, “BusFactor”, “ResponsiveMaintainer”, and “License
  
+ ## Part 2
+ 
+ ### Introduction
+ ACME Corporation is continuing to expand its Node.js footprint.ACME Corporation would like your team at BSS to develop a custom registry
+for their npm modules. Our system will be accessible via a web browser interface that is compliant with the Americans with Disabilities Act (ADA)3. Our system will be accessible via a REST-ful API. For scalability reasons your system should be deployed on Google Cloud Platform (GCP)
+
+### Baseline Requirements 
+- Upload, update, rate, and download individual packages.
+- Support for the new metrics requested by the customer.
+- Ingestion of a public npm package 
+- Package search
+- Directory of all packages
+- Reset to default system state
+
+### Progress
+
+- CI/CD functionality
+-  API Endpoints
+-  Configuring Rate option and new metrics
+ 
+
+### Authors
+- Eshaan Minocha
+- Aaradhya Jajoo
+- Ilan Benschikovski
+- Tanvi Kalaskar
+
  
 
  
