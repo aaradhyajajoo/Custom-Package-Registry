@@ -21,5 +21,8 @@ class Err_Class(object):
     
     def no_permission(self):
         return self.set_error(401, "You do not have permission to reset the registry.")
+    
+    def success(self):
+        return self.set_error(200, "Success.")
    
 

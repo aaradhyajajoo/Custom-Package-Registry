@@ -5,8 +5,8 @@
 from flask import Flask, request
 import json
 import os
-from google.cloud import secretmanager
-from google.oauth2 import service_account
+# from google.cloud import secretmanager
+# from google.oauth2 import service_account
 
 # Errors
 from errors import Err_Class
@@ -20,7 +20,7 @@ from firebase_admin import credentials
 from firebase_admin import db
 
 '''Global Variable(s)'''
-PROJECT_ID = 'ece-461-ae1a9' # Project ID on GCP
+# PROJECT_ID = os.environ["PROJ_ID"] # Project ID on GCP
 
 '''Initialize Firebase Admin SDK with your project's service account credentials'''
  # ***-firebase-adminsdk-602lt-2aa8f39403.json
@@ -35,15 +35,15 @@ PROJECT_ID = 'ece-461-ae1a9' # Project ID on GCP
 #     "client_id": os.environ["FIREBASE_CLIENT_ID"],
 #     "auth_uri": os.environ["FIREBASE_AUTH_URI"]
 # }
-# cred = credentials.Certificate(firebase_config) 
+# cred = credentials.Certificate("../cred_file.json") 
 #         echo "${{ secrets.GCP_SA_KEY }}" > key.json
 
-service_account_info = json.loads(os.environ['GCP_CREDS'])
-cred = service_account.Credentials.from_service_account_info(service_account_info)
+# service_account_info = json.loads(os.environ['GCP_CREDS'])
+# cred = service_account.Credentials.from_service_account_info(service_account_info)
 
-firebase_admin.initialize_app(cred, {
-     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
-})
+# firebase_admin.initialize_app(cred, {
+#      'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
+# })
 
 '''Endpoints'''
 
@@ -58,8 +58,9 @@ def create():
     authorization = request.headers.get("X-Authorization")
     if(authorization == None):
         return err.auth_failure() 
+    return err.success()
 
-    # Gets the JSON data from the request
+    '''# Gets the JSON data from the request
     data = request.get_json()
     metadata = data['metadata']
     ID = metadata['ID']
@@ -113,8 +114,8 @@ def create():
                     return json.dumps(metadata)
                 else:
                     return err.package_exists() 
-
-    return json.dumps(metadata),200
+    
+    return json.dumps(metadata),200'''
 
 # Test Command:  curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
 #eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' \
@@ -138,7 +139,7 @@ def list_of_packages():
     
     check_error = False
     pack_list = [] # List of packages to be returned
-    ref = db.reference('packages')
+    '''ref = db.reference('packages')
     all_packages = ref.get() # Gets the firebaseIDs as keys and the values as the packages we need
     for query in package_queries:
         # Returning all packages
@@ -156,11 +157,12 @@ def list_of_packages():
             if length == len(pack_list): # Unexpected error
                 pack_list.append({"code": -1,"message": "An unexpected error occurred"})
                 check_error = True
+    
         
         if check_error:
             return json.dumps(pack_list),500
         else:
-            return json.dumps(pack_list),200
+            return json.dumps(pack_list),200'''
 
 # Test Command: curl --location --request DELETE 'http://127.0.0.1:8080/reset' --header /
 # 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI /
@@ -174,10 +176,10 @@ def reset_registry():
     if(authorization == None):
         return err.no_permission()
     
-    ref = db.reference('packages')
-    ref.delete()
+    '''ref = db.reference('packages')
+    ref.delete()'''
 
-    return json.dumps({'success':True}),200 # Check return value
+    return err.success() # Check return value
 
 # GET, PUT, DELETE - Package with given ID in endpoint
 @app.route('/package/<id>', methods = ['GET', 'PUT', 'DELETE'])
@@ -200,21 +202,25 @@ def package_given_id(id):
 #'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' / 
 #--data '{"metadata": {"Name": "Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 def PackageRetrieve(id):
-    ref = db.reference('packages')
+    return json.dumps({'success':True}),200
+    
+    '''ref = db.reference('packages')
     all_packages = ref.get()
 
     for p_data in all_packages.values():
         metadata = p_data['metadata']
         if id == metadata['ID']:
             return json.dumps(metadata),200
-    return err.package_doesNot_exist()
+    return err.package_doesNot_exist()'''
 
 # Test Command: curl -H "Content-Type: application/json" --location --request PUT 'http://127.0.0.1:8080/package/underscore'-- / 
 #header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --data '{"metadata": {"Name": / 
 #"Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": / 
 #"if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 def PackageUpdate(id):
-    ref = db.reference('packages')
+    return json.dumps({'success':True}),200
+
+    '''ref = db.reference('packages')
     all_packages = ref.get()
 
     data = request.json
@@ -246,7 +252,7 @@ def PackageUpdate(id):
                 }
     ref.update(update_data) # Updates DB
 
-    return json.dumps({'Success':'True'}),200
+    return json.dumps({'Success':'True'}),200'''
 
 
 @app.route('/')
