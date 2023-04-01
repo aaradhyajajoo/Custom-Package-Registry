@@ -26,13 +26,12 @@ jobs:
         flake8 --exclude=ECE_461-1/ --max-line-length=460 --ignore=F401,E501,E711,F841,W503,E226 .
     - name : set env variables
       run : |
-      
+
         export GCP_CREDS="${{ secrets.GCP_SA_KEY }}"
     - name : run tests
       env:
         GCP_CREDS: ${{ env.GCP_CREDS }}
       run: | 
-        cat key.json
         cd Part2/
         pip install -r requirements.txt
         python3 main.py
