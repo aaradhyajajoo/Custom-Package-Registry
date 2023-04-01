@@ -32,6 +32,7 @@ jobs:
       env:
         GCP_CREDS: ${{ env.GCP_CREDS }}
       run: | 
+        cat key.json
         cd Part2/
         pip install -r requirements.txt
         python3 main.py
