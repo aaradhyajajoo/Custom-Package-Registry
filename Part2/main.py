@@ -1,12 +1,8 @@
 '''Import Statements'''
-# https://github.com/Purdue-ECE-461/project-2-3/blob/main/api/main.py
-
 # Flask
 from flask import Flask, request
 import json
 import os
-# from google.cloud import secretmanager
-# from google.oauth2 import service_account
 
 # Errors
 from errors import Err_Class
@@ -25,7 +21,6 @@ from firebase_admin import db
 
 '''Initialize Firebase Admin SDK with your project's service account credentials'''
  # ***-firebase-adminsdk-602lt-2aa8f39403.json
-# cred_file = get_sa_key()
 # os.system("./env_variable.sh")
 # firebase_config = {
 #     "type": os.environ["FIREBASE_TYPE"],
