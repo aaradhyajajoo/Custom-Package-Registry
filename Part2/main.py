@@ -95,10 +95,9 @@ def create():
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
             firebaseID = firebaseIDs_list[i] # Gets firebase ID 
-            if 'URL' in list(data_field.keys()):
-                # print(f'json_store[ID] = {json_store[firebaseID]}')
+            if 'URL' in list(data_field.keys()):    
+                # print(f'json_store[ID] = {json_store[firebaseID]}') 
                 # print(f'metadata = {metadata}')
-
                 # Check if (URL does not exist in the DB) or if (it does then the one being uploaded is different)
                 if (metadata == json_store[firebaseID]['metadata'] and 'URL' not in json_store[firebaseID]['data']) or \
 (metadata == json_store[firebaseID]['metadata'] and 'URL' in json_store[firebaseID]['data'] and data_field['URL'] != json_store[firebaseID]['data']['URL']):
@@ -107,7 +106,7 @@ def create():
                     update_data = {
                     'data': {
                        'URL': data_field['URL'],
-                        **ref.child('data').get()  # Merge with existing data
+                         **ref.child('data').get()  # Merge with existing data
                     }
                 }
                     ref.update(update_data) # Updates DB
@@ -135,7 +134,6 @@ def list_of_packages():
     if not package_queries:
         return err.unexpected_error()
     offset = request.args.get('offset', default=0, type=int)
-    
     check_error = False
     pack_list = [] # List of packages to be returned
     '''ref = db.reference('packages')
@@ -156,8 +154,6 @@ def list_of_packages():
             if length == len(pack_list): # Unexpected error
                 pack_list.append({"code": -1,"message": "An unexpected error occurred"})
                 check_error = True
-    
-        
         if check_error:
             return json.dumps(pack_list),500
         else:
@@ -173,8 +169,7 @@ def reset_registry():
     authorization = request.headers.get("X-Authorization")
     if(authorization == None):
         return err.no_permission()
-    
-    '''ref = db.reference('packages')
+        '''ref = db.reference('packages')
     ref.delete()'''
 
     return err.success() # Check return value
@@ -185,7 +180,6 @@ def package_given_id(id):
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
-
     if(authorization == None):
         return err.auth_failure()
     if request.method == 'GET':
@@ -251,7 +245,6 @@ def PackageUpdate(id):
     ref.update(update_data) # Updates DB
 
     return json.dumps({'Success':'True'}),200'''
-
 @app.route('/')
 def index():
  return 'Hello, from Aaradhya, Eshaan, Tanvi and Ilan!'
