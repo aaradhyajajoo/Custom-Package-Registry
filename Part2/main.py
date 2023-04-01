@@ -6,6 +6,8 @@ from flask import Flask, request
 import json
 import os
 from google.cloud import secretmanager
+from google.oauth2 import service_account
+
 
 # Errors
 from errors import Err_Class
