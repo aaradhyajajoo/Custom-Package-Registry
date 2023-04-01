@@ -11,33 +11,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    - name: install pep8
-      run : pip install flake8
-    - name: autopep8
-      run : pip install autopep8
-    - name : run flake8
-      run : |
-        autopep8 Part2/ --recursive --in-place
-        cd Part2/
-        flake8 --exclude=ECE_461-1/ --max-line-length=460 --ignore=F401,E501,F841 .
-    # - name : set env variables
-    #   run : |
-    #     echo "${{ secrets.GCP_SA_KEY }}" > key.json
-    #     export GCP_CREDS=key.json
-    - name : run tests
-      # env:
-      #   GCP_CREDS: ${{ env.GCP_CREDS }}
-      run: |
-        cd Part2/
-        pip install -r requirements.txt
-        nohup python3 main.py > /dev/null 2>&1 &
-        sleep 10
-        python3 -m unittest test_apis.py
-
-
-
-
-
-
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: install pep8
+        run: pip install flake8
+      - name: autopep8
+        run: pip install autopep8
+      - name: run flake8
+        run: |
+          autopep8 Part2/ --recursive --in-place
+          cd Part2/
+          flake8 --exclude=ECE_461-1/ --max-line-length=460 --ignore=F401,E501,F841 .
+      # - name : set env variables
+      #   run : |
+      #     echo "${{ secrets.GCP_SA_KEY }}" > key.json
+      #     export GCP_CREDS=key.json
+      - name: run tests
+        # env:
+        #   GCP_CREDS: ${{ env.GCP_CREDS }}
+        run: |
+          cd Part2/
+          pip install -r requirements.txt
+          nohup python3 main.py > /dev/null 2>&1 &
+          sleep 10
+          python3 -m unittest test_apis.py
