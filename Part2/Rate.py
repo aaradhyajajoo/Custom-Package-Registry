@@ -1,6 +1,7 @@
 import zipfile
 import re
 import os
+from github import Github
 
 def get_package_name(package_file):
     """Extract the package name from a zipped package file"""
@@ -58,8 +59,9 @@ def get_github_url(package_id): #Need to find a way to get github URL , this onl
                 return source_url
     return None
 
-def calculate_reviewed_code_fraction(package_github_url):
-    """Calculate the fraction of project code introduced through pull requests with code reviews"""
+def calculate_reviewed_code_fraction(github_url):
+    """Calculate the fraction of project code 
+    introduced through pull requests with code reviews"""
     g = Github()
     repo = g.get_repo(github_url.split('github.com/')[1].strip('/'))
     pull_request_commits = set()

@@ -5,3 +5,4 @@ google-cloud
 google-cloud-secret-manager
 flake8
 autopep8
+PyGithub
