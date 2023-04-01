@@ -30,7 +30,7 @@ We used main.py to evaluate the user input, and direct the program to the correc
  
  ### Introduction
  ACME Corporation is continuing to expand its Node.js footprint.ACME Corporation would like your team at BSS to develop a custom registry
-for their npm modules. Our system will be accessible via a web browser interface that is compliant with the Americans with Disabilities Act (ADA)3. Our system will be accessible via a REST-ful API. For scalability reasons your system should be deployed on Google Cloud Platform (GCP)
+for their npm modules. Our system will be accessible via a web browser interface that is compliant with the Americans with Disabilities Act (ADA)3. Our system will be accessible via a REST-ful API. For scalability reasons our system is deployed on Google Cloud Platform (GCP) using Google App Engine.
 
 ### Baseline Requirements 
 - Upload, update, rate, and download individual packages.
