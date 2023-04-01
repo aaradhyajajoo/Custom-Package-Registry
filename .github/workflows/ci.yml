@@ -16,7 +16,8 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v2
     - name: install pep8
-      run : pip install flake8 , autopep8
+      run : pip install flake8 
+      run : autopep8
     - name : run flake8
       run : |
         autopep8 Part2/--recursive --in-place
