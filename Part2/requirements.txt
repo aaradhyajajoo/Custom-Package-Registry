@@ -6,3 +6,5 @@ google-cloud-secret-manager
 flake8
 autopep8
 PyGithub
+subprocess
+unittest
