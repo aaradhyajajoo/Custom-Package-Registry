@@ -21,6 +21,7 @@ from firebase_admin import db
 
 '''Global Variable(s)'''
 # PROJECT_ID = os.environ["PROJ_ID"] # Project ID on GCP
+# PROJECT_ID="ece-461-ae1a9"
 
 '''Initialize Firebase Admin SDK with your project's service account credentials'''
  # ***-firebase-adminsdk-602lt-2aa8f39403.json
