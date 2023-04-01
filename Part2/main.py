@@ -37,6 +37,8 @@ PROJECT_ID = 'ece-461-ae1a9' # Project ID on GCP
 #     "auth_uri": os.environ["FIREBASE_AUTH_URI"]
 # }
 # cred = credentials.Certificate(firebase_config) 
+#         echo "${{ secrets.GCP_SA_KEY }}" > key.json
+
 service_account_info = json.loads(os.environ['GCP_CREDS'])
 cred = service_account.Credentials.from_service_account_info(service_account_info)
 
