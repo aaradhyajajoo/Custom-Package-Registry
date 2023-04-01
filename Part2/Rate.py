@@ -1,6 +1,6 @@
 import zipfile
 import re
-
+import os
 
 def get_package_name(package_file):
     """Extract the package name from a zipped package file"""
@@ -21,7 +21,8 @@ def unzip_package(file_path, target_dir):
 
 
 def calculate_dependency_metric(package_file):
-    """Calculate the fraction of dependencies that are pinned to a specific major+minor version"""
+    """Calculate the fraction of dependencies
+      that are pinned to a specific major+minor version"""
     target_dir = 'temp_unzip_dir'
     unzip_package(package_file, target_dir)
     requirements_file = os.path.join(target_dir, 'requirements.txt')
@@ -44,7 +45,7 @@ def calculate_dependency_metric(package_file):
 def get_github_url(package_id): #Need to find a way to get github URL , this only works if its on PYPI 
     """Get the GitHub URL of a package given its ID"""
     url = f'https://pypi.org/pypi/{package_id}/json'
-    response = requests.get(url)
+    response = re.get(url)
     if response.status_code != 200:
         return None
     data = response.json()
