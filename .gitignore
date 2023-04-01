@@ -2,3 +2,5 @@ node_modules/
 __pycache__/
 cred_file.json
 env_variables
+server.log
+nohup.out

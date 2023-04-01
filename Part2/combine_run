@@ -1,0 +1,4 @@
+# !/bin/sh
+nohup python3 main.py > /dev/null 2>&1 &
+sleep 10
+python3 -m unittest test_apis.py
