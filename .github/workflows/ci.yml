@@ -26,8 +26,8 @@ jobs:
         flake8 --exclude=ECE_461-1/ --max-line-length=460 --ignore=F401,E501,E711,F841,W503,E226 .
     - name : set env variables
       run : |
-
-        export GCP_CREDS="${{ secrets.GCP_SA_KEY }}"
+        echo "${{ secrets.GCP_SA_KEY }}" > key.json
+        export GCP_CREDS=key.json
     - name : run tests
       env:
         GCP_CREDS: ${{ env.GCP_CREDS }}
