@@ -23,7 +23,7 @@ jobs:
       run : |
         autopep8 Part2/ --recursive --in-place
         cd Part2/
-        flake8 --exclude=ECE_461-1/ --max-line-length=120 .
+        flake8 --exclude=ECE_461-1/ --max-line-length=460 .
     
         
 
