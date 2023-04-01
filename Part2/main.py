@@ -84,7 +84,7 @@ def create():
                 # print(f'metadata = {metadata}')
 
                 # Check if (URL does not exist in the DB) or if (it does then the one being uploaded is different)
-                if (metadata == json_store[firebaseID]['metadata'] and 'URL' not in json_store[firebaseID]['data']) or / 
+                if (metadata == json_store[firebaseID]['metadata'] and 'URL' not in json_store[firebaseID]['data']) or \
 (metadata == json_store[firebaseID]['metadata'] and 'URL' in json_store[firebaseID]['data'] and data_field['URL'] != json_store[firebaseID]['data']['URL']):
                     print('Ingestion required')
                     ref = db.reference('packages/' + firebaseID) 
@@ -101,8 +101,8 @@ def create():
 
     return json.dumps(metadata),200
 
-# Test Command:  curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer / 
-#eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' /
+# Test Command:  curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
+#eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' \
 # --header 'Content-Type: application/json' --data '[{"Version":"1.2.3","Name":"Underscore"},{"Version":"1.2.3-2.1.0","Name":"Lodash"}]'
 # Modify "Name":"*" to test return of all packages 
 # POST Get Packages
@@ -181,7 +181,7 @@ def package_given_id(id):
         # return (id)
         pass
 
-# Test Command: curl --location --request GET 'http://127.0.0.1:8080/package/underscore' --header / 
+# Test Command: curl --location --request GET 'http://127.0.0.1:8080/package/underscore' --header \ 
 #'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' / 
 #--data '{"metadata": {"Name": "Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 def PackageRetrieve(id):
@@ -215,7 +215,7 @@ def PackageUpdate(id):
 
     if not id_exists:
         return err.malformed_req()
-    if (metadata['Name'] != data['metadata']['Name']) or (metadata['Version']  / 
+    if (metadata['Name'] != data['metadata']['Name']) or (metadata['Version']  \
 != data['metadata']['Version']) or (metadata['ID'] != data['metadata']['ID']):
         return err.package_doesNot_exist()
 
