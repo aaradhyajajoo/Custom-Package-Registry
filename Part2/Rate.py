@@ -60,14 +60,13 @@ def get_github_url(package_id): #Need to find a way to get github URL , this onl
     return None
 
 def calculate_reviewed_code_fraction(github_url):
-    """Calculate the fraction of project code 
-    introduced through pull requests with code reviews"""
+    """Calculate the fraction of project code introduced through pull requests with code reviews"""
     g = Github()
     repo = g.get_repo(github_url.split('github.com/')[1].strip('/'))
     pull_request_commits = set()
     for pr in repo.get_pulls(state='closed'):
         if pr.merged:
-            for commit in pr.get_commits():
+            for commit in pr.get_commits():         
                 pull_request_commits.add(commit.sha)
     total_lines = 0
     reviewed_lines = 0
@@ -78,6 +77,3 @@ def calculate_reviewed_code_fraction(github_url):
         for file in commit.files:
             total_lines += file.changes
     return float(reviewed_lines) / total_lines if total_lines > 0 else 0.0
-
-
-
