@@ -1,5 +1,5 @@
 '''Import Statements'''
-# https://github.com/Purdue-ECE-461/project-2-3/blob/main/api/main.py 
+# https://github.com/Purdue-ECE-461/project-2-3/blob/main/api/main.py
 
 # Flask
 from flask import Flask, request
@@ -36,7 +36,7 @@ from firebase_admin import db
 #     "client_id": os.environ["FIREBASE_CLIENT_ID"],
 #     "auth_uri": os.environ["FIREBASE_AUTH_URI"]
 # }
-# cred = credentials.Certificate("../cred_file.json") 
+# cred = credentials.Certificate("../cred_file.json")
 #         echo "${{ secrets.GCP_SA_KEY }}" > key.json
 
 # service_account_info = json.loads(os.environ['GCP_CREDS'])
@@ -48,17 +48,17 @@ from firebase_admin import db
 
 '''Endpoints'''
 
-# Test Command: curl -H "Content-Type: application/json" --location 'http://127.0.0.1:8080/package' --header / 
+# Test Command: curl -H "Content-Type: application/json" --location 'http://127.0.0.1:8080/package' --header /
 #'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --data '{"metadata":{"Name":"Underscore","Version":"1.0.0","ID":"underscore"},"data":{"Content":"checking_content","JSProgram":"if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 # POST Package Create and POST Package Ingest
 @app.route('/package/', methods=['POST'])
 def create():
-    
+
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
     if(authorization == None):
-        return err.auth_failure() 
+        return err.auth_failure()
     return err.success()
 
     '''# Gets the JSON data from the request
@@ -94,15 +94,15 @@ def create():
         if ID in unique_id_list:
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
-            firebaseID = firebaseIDs_list[i] # Gets firebase ID 
-            if 'URL' in list(data_field.keys()):    
-                # print(f'json_store[ID] = {json_store[firebaseID]}') 
+            firebaseID = firebaseIDs_list[i] # Gets firebase ID
+            if 'URL' in list(data_field.keys()):
+                # print(f'json_store[ID] = {json_store[firebaseID]}')
                 # print(f'metadata = {metadata}')
                 # Check if (URL does not exist in the DB) or if (it does then the one being uploaded is different)
                 if (metadata == json_store[firebaseID]['metadata'] and 'URL' not in json_store[firebaseID]['data']) or \
 (metadata == json_store[firebaseID]['metadata'] and 'URL' in json_store[firebaseID]['data'] and data_field['URL'] != json_store[firebaseID]['data']['URL']):
                     print('Ingestion required')
-                    ref = db.reference('packages/' + firebaseID) 
+                    ref = db.reference('packages/' + firebaseID)
                     update_data = {
                     'data': {
                        'URL': data_field['URL'],
@@ -112,13 +112,13 @@ def create():
                     ref.update(update_data) # Updates DB
                     return json.dumps(metadata)
                 else:
-                    return err.package_exists() 
-    
+                    return err.package_exists()
+
     return json.dumps(metadata),200'''
 # Test Command:  curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
 #eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' \
 # --header 'Content-Type: application/json' --data '[{"Version":"1.2.3","Name":"Underscore"},{"Version":"1.2.3-2.1.0","Name":"Lodash"}]'
-# Modify "Name":"*" to test return of all packages 
+# Modify "Name":"*" to test return of all packages
 # POST Get Packages
 @app.route('/packages/', methods=['POST'])
 def list_of_packages():
@@ -126,7 +126,7 @@ def list_of_packages():
     authorization = None
     authorization = request.headers.get("X-Authorization")
     if(authorization == None):
-        return err.auth_failure() 
+        return err.auth_failure()
 
     # Gets package query from request body
     package_queries = request.json
@@ -190,12 +190,12 @@ def package_given_id(id):
         # return (id)
         pass
 
-# Test Command: curl --location --request GET 'http://127.0.0.1:8080/package/underscore' --header \ 
-#'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' / 
+# Test Command: curl --location --request GET 'http://127.0.0.1:8080/package/underscore' --header \
+#'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' /
 #--data '{"metadata": {"Name": "Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 def PackageRetrieve(id):
     return json.dumps({'success':True}),200
-    
+
     '''ref = db.reference('packages')
     all_packages = ref.get()
 
@@ -205,9 +205,9 @@ def PackageRetrieve(id):
             return json.dumps(metadata),200
     return err.package_doesNot_exist()'''
 
-# Test Command: curl -H "Content-Type: application/json" --location --request PUT 'http://127.0.0.1:8080/package/underscore'-- / 
-#header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --data '{"metadata": {"Name": / 
-#"Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": / 
+# Test Command: curl -H "Content-Type: application/json" --location --request PUT 'http://127.0.0.1:8080/package/underscore'-- /
+#header 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' --data '{"metadata": {"Name": /
+#"Underscore", "Version": "1.0.0", "ID": "underscore"}, "data": {"Content": "Updating", "URL": "https://github.com/jashkenas/underscore","JSProgram": /
 #"if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 def PackageUpdate(id):
     return json.dumps({'success':True}),200
@@ -233,8 +233,8 @@ def PackageUpdate(id):
         return err.package_doesNot_exist()
 
 
-    # Updating the specific child node in the DB 
-    ref = db.reference('packages/'+firebaseID) 
+    # Updating the specific child node in the DB
+    ref = db.reference('packages/'+firebaseID)
     update_data = {
                     'data': {
                         'URL': data['data']['URL'],
