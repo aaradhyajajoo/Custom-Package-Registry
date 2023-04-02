@@ -1,8 +1,9 @@
 from selenium import webdriver
 import threading
 import time
+import numpy as np
 
-num_clients = 5 # will change to 500, later. Dont want to put to much load
+num_clients = 5                                            # will change to 500, later. Dont want to put to much load
 threads = []
 latency_list = []
 
@@ -15,8 +16,15 @@ def load_page():
     latency_list.append(latency)
     driver.quit()
 
+def get_data(latency_list):
+  latency_list = np.array(latency_list)
+  mu = np.mean(latency_list)
+  median = np.median(latency_list)
+  percentile99 = np.percentile(latency_list, 99)
+  print(f'mean: {mu} seconds\nmedian: {median} seconds\n99th Percentile: {percentile99}seconds')
+    
 for i in range(num_clients):
-    print(i) # make sure the program is running.
+    print(i)                                               # make sure the program is running.
     t = threading.Thread(target=load_page)
     threads.append(t)
     t.start()
@@ -24,4 +32,4 @@ for i in range(num_clients):
 for t in threads:
     t.join()
 
-print(latency_list)
+get_data(latency_list)
