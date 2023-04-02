@@ -51,7 +51,7 @@ for their npm modules. Our system will be accessible via a web browser interface
 - compelted "/packages" endpoint
 - completed "/reset" endpoint
 - flake8 implented to run 6 tests on every pull request
-
+- Performance Testing is available in part2 directory of performance branch
 
 ### Authors
 - Eshaan Minocha
