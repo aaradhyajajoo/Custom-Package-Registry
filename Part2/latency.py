@@ -27,12 +27,17 @@ def load_page(i):
 #   after all threads are ended, we analyze load experienced by the system
 def get_data(latency_list):
   latency_list = np.array(latency_list)                     # converts to np array for friendly analytics
-  mu = np.mean(latency_list)                                # mean
-  median = np.median(latency_list)                          # median
-  percentile99 = np.percentile(latency_list, 99)            # 99th percentile
+  mu = np.mean(latency_list)
+  mu = np.round(mu, 4)                                      # mean
+  median = np.median(latency_list)                          
+  median = np.round(median, 4)                              # median
+  percentile99 = np.percentile(latency_list, 99)            
+  percentile99 = np.round(percentile99, 4)                  # 99th percentile
 
   # show data results
-  print(f'mean: {mu} seconds\nmedian: {median} seconds\n99th Percentile: {percentile99}seconds')
+  print(f'mean: {mu} seconds')
+  print(f'median: {median} seconds')
+  print(f'99th Percentile: {percentile99} seconds')
 
 #   creates threads and adds load    
 for i in range(num_clients):
