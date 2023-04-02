@@ -2,16 +2,18 @@ from selenium import webdriver      # selenium is the chosen library for automat
 import threading                    # since system needs to experience load simultaniously, threading needs to be utilized           
 import time                         # used to measure latency data
 import numpy as np                  # used to calculate latency data 
+import random                       # used to sample packages
 
 num_clients = 5                     # set to 5 for proof of concept, will be switch to 500 when ready
 threads = []                        # stores thread objects
 
 # Is this thread safe?
 latency_list = []                   # stores latency time in seconds for each client. Size should be "num_clients" by the end 
-
-#   performs a load to the system
-def load_page():
+package_samples = random.sample(range(1000), num_clients)   #   rando sample of 500 clients from the registry of 1000
+#   performs a load to the system, input is thread number
+def load_page(i):
     driver = webdriver.Chrome()
+    sample_num = package_samples[i]
 
     start_time = time.time()                                # used to measure latency 
     driver.get("https://ece-461-ae1a9.uc.r.appspot.com")    # creates load
@@ -35,7 +37,7 @@ def get_data(latency_list):
 #   creates threads and adds load    
 for i in range(num_clients):
     print(i)                                               # make sure the program is running.
-    t = threading.Thread(target=load_page)
+    t = threading.Thread(target=load_page, args=(i,))
     threads.append(t)
     t.start()
 
