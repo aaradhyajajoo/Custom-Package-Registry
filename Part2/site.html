@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>File Upload</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			padding: 20px;
+		}
+		
+		h1 {
+			margin-top: 0;
+		}
+		
+		#file-upload {
+			margin-top: 20px;
+		}
+		
+		#upload-btn {
+			background-color: #4CAF50;
+			border: none;
+			color: white;
+			padding: 10px 20px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+			margin: 4px 2px;
+			cursor: pointer;
+		}
+		
+		#upload-btn:hover {
+			background-color: #3e8e41;
+		}
+	</style>
+</head>
+<body>
+	<h1>File Upload</h1>
+	<div id="file-upload">
+		<label for="file-input">Select a .zip file to upload:</label>
+		<input type="file" id="file-input">
+		<button id="upload-btn">Upload</button>
+	</div>
+	
+	<script>
+		const fileInput = document.getElementById('file-input');
+		const uploadBtn = document.getElementById('upload-btn');
+		
+		uploadBtn.addEventListener('click', () => {
+			const files = fileInput.files;
+			if (files.length === 0) {
+				alert('Please select a file to upload.');
+				return;
+			}
+			
+			const formData = new FormData();
+			formData.append('file', files[0]);
+			
+			fetch('/upload', {
+				method: 'POST',
+				body: formData
+			}).then(response => {
+				alert('File uploaded successfully!');
+			}).catch(error => {
+				console.error(error);
+				alert('Error message... Will figure out later');
+			});
+		});
+	</script>
+</body>
+</html>
+
