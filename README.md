@@ -41,11 +41,17 @@ for their npm modules. Our system will be accessible via a web browser interface
 - Reset to default system state
 
 ### Progress
-
 - CI/CD functionality
 -  API Endpoints
 -  Configuring Rate option and new metrics
  
+### Deliverable 1
+- implemented Google Firebase as the database
+- completed "/package" endpoint
+- compelted "/packages" endpoint
+- completed "/reset" endpoint
+- flake8 implented to run 6 tests on every pull request
+
 
 ### Authors
 - Eshaan Minocha
