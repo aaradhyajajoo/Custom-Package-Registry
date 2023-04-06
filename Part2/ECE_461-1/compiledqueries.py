@@ -8,7 +8,7 @@ try:
     token = os.environ['GITHUB_TOKEN']
 except KeyError:
     print("No Github token environment variable set")
-    
+
 header = {'Authorization': 'Bearer {}'.format(token)}
 
 
@@ -41,10 +41,12 @@ def getBusFactorScore(owner, name):
     owner = '"' + f"{owner}" + '"'
     name = '"' + f"{name}" + '"'
 
-    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})\n" + "\t{ mentionableUsers{\n\ttotalCount\n}\n}\n}"
+    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})\n" + \
+        "\t{ mentionableUsers{\n\ttotalCount\n}\n}\n}"
 
     # req=requests.get(url='https://api.github.com/graphql', auth=(username,token)) headers=header
-    req = requests.post(url='https://api.github.com/graphql', json={'query': query1}, headers=header)
+    req = requests.post(url='https://api.github.com/graphql',
+                        json={'query': query1}, headers=header)
 
     result = req.json()
     if result['data']['repository'] == None:
@@ -67,10 +69,12 @@ def getCorrectnessScore(owner, name):
     owner = '"' + f"{owner}" + '"'
     name = '"' + f"{name}" + '"'
 
-    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})" + " { \n\t\tstargazerCount }}"
+    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})" + \
+        " { \n\t\tstargazerCount }}"
 
     # req=requests.get(url='https://api.github.com/graphql', auth=(username,token)) headers=header
-    req = requests.post(url='https://api.github.com/graphql', json={'query': query1}, headers=header)
+    req = requests.post(url='https://api.github.com/graphql',
+                        json={'query': query1}, headers=header)
     result = req.json()
     if result['data']['repository'] == None:
         return 0
@@ -87,7 +91,6 @@ def getResponsiveMaintainersScore(owner, name):
     owner = '"' + f"{owner}" + '"'
     name = '"' + f"{name}" + '"'
     master = '"' + "master" + '"'
-
 
     # create github timestamp of last year's date
     todaysDateDateTime = date.today()
@@ -107,9 +110,12 @@ def getResponsiveMaintainersScore(owner, name):
         gts = '"' + str(lastyear) + "-" + str(todaysDateDateTime.month) + "-" + str(
             todaysDateDateTime.day) + "T01:01:00Z" + '"'
 
-    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})" + " { \n" + "\t ref(qualifiedName:" + f" {master})" + " { " + "\n\t\ttarget { \n\t\t ... on Commit {\n\t" + f"history(since:{gts})" + "{" + "\n\t\ttotalCount}}}}}\n\t\t}"
+    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})" + " { \n" + "\t ref(qualifiedName:" + f" {master})" + \
+        " { " + "\n\t\ttarget { \n\t\t ... on Commit {\n\t" + \
+        f"history(since:{gts})" + "{" + "\n\t\ttotalCount}}}}}\n\t\t}"
 
-    req = requests.post(url='https://api.github.com/graphql', json={'query': query1}, headers=header)
+    req = requests.post(url='https://api.github.com/graphql',
+                        json={'query': query1}, headers=header)
     result = req.json()
     if result['data']['repository'] == None or result['data']['repository']['ref'] == None:
         return 0
@@ -158,6 +164,7 @@ def getRampUpScore(name, owner, file):
         if o == owner:
             return float(score[0])
 
+
 def calcFinalScore(bf, lc, cr, ru, rm, owner_url):
     score = (bf * 4 + cr * 3 + ru * 2 + rm * 1) / 10
     score *= lc
@@ -186,9 +193,9 @@ def writeFinalScore(arr, score_truncated, owner_url, outfile):
     bf = arr[2]
     rm = arr[3]
     lc = arr[4]
-    outfile_pointer.write("{" + f"{url}:\"{owner_url}\", {net}:{score_truncated}, {rampup}:{ru}, {correct}:{cr}, {busfactor}:{bf}, {respmaint}:{rm}, {licen}:{lc}" + "}\n")
+    outfile_pointer.write(
+        "{" + f"{url}:\"{owner_url}\", {net}:{score_truncated}, {rampup}:{ru}, {correct}:{cr}, {busfactor}:{bf}, {respmaint}:{rm}, {licen}:{lc}" + "}\n")
     outfile_pointer.close()
-
 
 
 if __name__ == '__main__':
@@ -196,25 +203,29 @@ if __name__ == '__main__':
     urls_and_final_scores = {}
     urls_ranked_by_score = {}
     attributes_of_url = {}
-    #owners_and_names, owners_and_urls = readFile(urlfile='cloning_repos/git_urls.txt')
-    owners_and_names, owners_and_urls = readFile(urlfile='cloning_repos/git_urls.txt')
+    # owners_and_names, owners_and_urls = readFile(urlfile='cloning_repos/git_urls.txt')
+    owners_and_names, owners_and_urls = readFile(
+        urlfile='cloning_repos/git_urls.txt')
     for owner in owners_and_names:
         cr = getCorrectnessScore(owner=owner,
                                  name=owners_and_names[owner])
         rm = getResponsiveMaintainersScore(
-                                           owner=owner, name=owners_and_names[owner])
+            owner=owner, name=owners_and_names[owner])
         bf = getBusFactorScore(owner=owner,
                                name=owners_and_names[owner])
-        lc = getLicenseScore(name=owners_and_names[owner], owner=owner, file='license.txt')
-        ru = getRampUpScore(name=owners_and_names[owner], owner=owner, file='rampup_time.txt')
+        lc = getLicenseScore(
+            name=owners_and_names[owner], owner=owner, file='license.txt')
+        ru = getRampUpScore(
+            name=owners_and_names[owner], owner=owner, file='rampup_time.txt')
 
-        final_score = calcFinalScore(bf=bf, cr=cr, rm=rm, lc=lc, ru=ru, owner_url=owners_and_urls[owner])
+        final_score = calcFinalScore(
+            bf=bf, cr=cr, rm=rm, lc=lc, ru=ru, owner_url=owners_and_urls[owner])
         # url, ru, cr, bf, rm, lc
         urls_and_final_scores[owners_and_urls[owner]] = final_score
         attributes_of_url[owners_and_urls[owner]] = [ru, cr, bf, rm, lc]
 
-    urls_ranked_by_score = dict(sorted(urls_and_final_scores.items(), key= lambda x:x[1], reverse=True))
+    urls_ranked_by_score = dict(
+        sorted(urls_and_final_scores.items(), key=lambda x: x[1], reverse=True))
     for url in urls_ranked_by_score:
-        writeFinalScore(arr=attributes_of_url[url], score_truncated=urls_ranked_by_score[url], owner_url=url, outfile='outfile.txt')
-
-
+        writeFinalScore(
+            arr=attributes_of_url[url], score_truncated=urls_ranked_by_score[url], owner_url=url, outfile='outfile.txt')

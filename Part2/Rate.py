@@ -3,6 +3,7 @@ import re
 import os
 from github import Github
 
+
 def get_package_name(package_file):
     """Extract the package name from a zipped package file"""
     with zipfile.ZipFile(package_file, 'r') as z:
@@ -10,10 +11,12 @@ def get_package_name(package_file):
             if filename.endswith('setup.py'):
                 with z.open(filename) as f:
                     setup_content = f.read().decode('utf-8')
-                    match = re.search(r'name\s*=\s*[\'"]([^\'"]+)[\'"]', setup_content)
+                    match = re.search(
+                        r'name\s*=\s*[\'"]([^\'"]+)[\'"]', setup_content)
                     if match:
                         return match.group(1)
     return None
+
 
 def unzip_package(file_path, target_dir):
     """Unzip a package to the target directory"""
@@ -43,7 +46,9 @@ def calculate_dependency_metric(package_file):
                     num_pinned_deps += 1
         return float(num_pinned_deps) / num_deps
 
-def get_github_url(package_id): #Need to find a way to get github URL , this only works if its on PYPI 
+
+# Need to find a way to get github URL , this only works if its on PYPI
+def get_github_url(package_id):
     """Get the GitHub URL of a package given its ID"""
     url = f'https://pypi.org/pypi/{package_id}/json'
     response = re.get(url)
@@ -59,6 +64,7 @@ def get_github_url(package_id): #Need to find a way to get github URL , this onl
                 return source_url
     return None
 
+
 def calculate_reviewed_code_fraction(github_url):
     """Calculate the fraction of project code introduced through pull requests with code reviews"""
     g = Github()
@@ -66,7 +72,7 @@ def calculate_reviewed_code_fraction(github_url):
     pull_request_commits = set()
     for pr in repo.get_pulls(state='closed'):
         if pr.merged:
-            for commit in pr.get_commits():         
+            for commit in pr.get_commits():
                 pull_request_commits.add(commit.sha)
     total_lines = 0
     reviewed_lines = 0

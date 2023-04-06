@@ -60,7 +60,7 @@ def create():
     print(f'Json stored in the db = {json_store}')
     # ref.delete() # Deletes every node in the DB
 
-    if json_store == None:
+    if json_store is None:
         print('DB is empty, adding new data')
         ref.push(package)  # Upload data to package
     else:  # If packages already exist in the DB
@@ -223,12 +223,12 @@ def PackageUpdate(id):
 
     if not id_exists:
         return err.malformed_req()
-    if (metadata['Name'] != data['metadata']['Name']) or (metadata['Version']
-                                                          != data['metadata']['Version']) or (metadata['ID'] != data['metadata']['ID']):
+    if (metadata['Name'] != data['metadata']['Name']) or (metadata['Version'] != data['metadata']['Version']) \
+            or (metadata['ID'] != data['metadata']['ID']):
         return err.package_doesNot_exist()
 
     # Updating the specific child node in the DB
-    ref = db.reference('packages/'+firebaseID)
+    ref = db.reference('packages/' + firebaseID)
     update_data = {
         'data': {
             'URL': data['data']['URL'],
