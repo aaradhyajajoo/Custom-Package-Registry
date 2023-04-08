@@ -263,11 +263,16 @@ def metric_rate(id):
         return 0 #error.set("rating of package failed", 500)
     code_review = Rate.calculate_reviewed_code_fraction(url)
     dependecy  = Rate.calculate_dependency_metric_from_id(id)
-    
+
 
 
     #from ECE_461-1 import compilequery.py
-   # busfactor = compilequery.getbusfactor()
+   # busfactor = compilequery.getBusFactorScore(owner,name)
+   #responsiveness = compilequery.getResponsiveMaintainersScore(owner, name)
+   #correctness  = compilequery. getResponsiveMaintainersScore(owner, name)
+   #license_score = compilequery.getLicenseScore(name, owner, file)
+   #ramp_up = compilequery.getLicenseScore(name, owner, file)
+   
 
 
 
