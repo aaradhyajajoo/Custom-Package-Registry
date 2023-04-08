@@ -7,9 +7,11 @@ from flask import Flask, request
 import json
 import os
 
+
 # Errors
 from errors import Err_Class
 err = Err_Class()
+
 
 app = Flask(__name__)  # Initializing Flask app
 
@@ -239,6 +241,34 @@ def PackageUpdate(id):
     ref.update(update_data)  # Updates DB
 
     return json.dumps({'Success': 'True'}), 200
+
+
+@app.route('/package/<id>/rate/', methods=['GET'])
+
+def toJSON(self):
+    return json.dumps(self, default=lambda o: o.__dict__,
+            sort_keys=True, indent=4)
+
+def metric_rate(id):
+    # Checks Authorization
+    authorization = None
+    authorization = request.headers.get("X-Authorization")
+    if authorization is None:
+        return err.auth_failure()
+    PackageUpdate(id)
+    #get package URL
+    import Rate
+    url = Rate.get_github_url(id)
+    if url is None:
+        return 0 #error.set("rating of package failed", 500)
+    code_review = Rate.calculate_reviewed_code_fraction(url)
+    dependecy  = Rate.calculate_dependency_metric_from_id(id)
+    
+
+
+    #from ECE_461-1 import compilequery.py
+   # busfactor = compilequery.getbusfactor()
+
 
 
 @app.route('/')

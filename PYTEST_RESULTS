@@ -1,0 +1,24 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.6, pytest-7.2.1, pluggy-0.13.0
+rootdir: /home/shay/a/eminocha/Desktop/ECE_461
+plugins: cov-4.0.0
+collected 21 items
+
+run_test.py ....................F                                        [100%]
+
+---------- coverage: platform linux, python 3.10.6-final-0 -----------
+Name                                                Stmts   Miss  Cover
+-----------------------------------------------------------------------
+/usr/lib/python3/dist-packages/pluggy/_tracing.py      41     31    24%
+/usr/lib/python3/dist-packages/pluggy/callers.py      125     86    31%
+/usr/lib/python3/dist-packages/pluggy/hooks.py        175    101    42%
+/usr/lib/python3/dist-packages/pluggy/manager.py      196    152    22%
+main.py                                               150    141     6%
+run_test.py                                           146      1    99%
+-----------------------------------------------------------------------
+TOTAL                                                 833    512    39%
+
+
+=========================== short test summary info ============================
+FAILED run_test.py::test_duplicates - AssertionError: assert 5 == 10
+========================= 1 failed, 20 passed in 0.26s =========================
