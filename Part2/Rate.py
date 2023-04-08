@@ -35,7 +35,7 @@ def calculate_dependency_metric_from_id(package_id):
         return calculate_dependency_metric(requirements_file, requirements)
 
 
-def calculate_dependency_metric(requirements_file, requirements):
+def calculate_dependency_metric(requirements_file):
     """Calculate the fraction of dependencies that are pinned to a specific major+minor version"""
     if not os.path.exists(requirements_file):
         return 1.0
@@ -46,12 +46,11 @@ def calculate_dependency_metric(requirements_file, requirements):
         num_deps = len(lines)
         num_pinned_deps = 0
         for line in lines:
-            for requirement in requirements:
-                match = re.search(f'{requirement}==(\d+\.\d+)', line)
-                if match:
-                    version = match.group(1)
-                    if version.startswith(requirement):
-                        num_pinned_deps += 1
+            match = re.search(r'==([0-9]+\.[0-9]+)', line)
+            if match:
+                version = match.group(1)
+                if version.startswith('2.3.'):
+                    num_pinned_deps += 1
         return float(num_pinned_deps) / num_deps
 
 # Need to find a way to get github URL , this only works if its on PYPI
