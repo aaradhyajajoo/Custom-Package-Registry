@@ -1,5 +1,0 @@
-# !/bin/sh
-python3 main.py "$@"
-rm -rf Useless
-#echo $?
-exit $?
