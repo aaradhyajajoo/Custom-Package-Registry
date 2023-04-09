@@ -1,5 +1,0 @@
-{"metric":"RAMP_UP_SCORE", "api":"clone", "filepath":"main.py", "line":96}
-{"metric":"CORRECTNESS_SCORE", "api":"graphql", "filepath":"src/graph_api_call.ts", "line":108}
-{"metric":"BUS_FACTOR_SCORE", "api":"graphql", "filepath":"src/graph_api_call.ts", "line":108}
-{"metric":"LICENSE_SCORE", "api":"rest", "filepath":"main.py", "line":34}
-{"metric":"RESPONSIVE_MAINTAINER_SCORE", "api":"graphql", "filepath":"src/graph_api_call.ts", "line":108}
