@@ -89,3 +89,4 @@ def calculate_reviewed_code_fraction(github_url):
         for file in commit.files:
             total_lines += file.changes
     return float(reviewed_lines) / total_lines if total_lines > 0 else 0.0
+#hi
