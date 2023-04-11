@@ -241,6 +241,49 @@ def PackageUpdate(id):
     return json.dumps({'Success': 'True'}), 200
 
 
+
+@app.route('/package/<id>/rate/', methods=['GET'])
+
+def toJSON(self):
+    return json.dumps(self, default=lambda o: o.__dict__,
+            sort_keys=True, indent=4)
+
+def metric_rate(id):
+    # Checks Authorization
+        # Check if package exists
+  #  if package_id not in packages:
+   #     return jsonify({'error': 'Package not found'}), 404
+    authorization = None
+    authorization = request.headers.get("X-Authorization")
+    if authorization is None:
+        return err.auth_failure()
+    PackageUpdate(id)
+    #get package URL
+    import Rate
+    url = Rate.get_github_url(id)
+    if url is None:
+        return 0 #error.set("rating of package failed", 500)
+    code_review = Rate.calculate_reviewed_code_fraction(url)
+    dependecy  = Rate.calculate_dependency_metric_from_id(id)
+    #import files from ECE_461-1
+    import os
+    os.system('cd ECE_461-1 ')
+   # from compiledqueries import *
+
+
+   # from ECE_461-1 import compilequery.py
+
+   # busfactor = compilequery.getBusFactorScore(owner,name)
+   #responsiveness = compilequery.getResponsiveMaintainersScore(owner, name)
+   #correctness  = compilequery. getResponsiveMaintainersScore(owner, name)
+   #license_score = compilequery.getLicenseScore(name, owner, file)
+   #ramp_up = compilequery.getLicenseScore(name, owner, file)
+
+
+
+
+
+
 @app.route('/')
 def index():
     return 'Hello, from Aaradhya, Eshaan, Tanvi and Ilan!'
