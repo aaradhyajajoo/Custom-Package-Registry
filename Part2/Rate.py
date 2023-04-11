@@ -91,3 +91,11 @@ def calculate_reviewed_code_fraction(github_url):
     return float(reviewed_lines) / total_lines if total_lines > 0 else 0.0
 
 
+def get_owner_and_name_from_github_url(url):
+    pattern = r'https://github.com/([\w-]+)/([\w-]+)'
+    match = re.search(pattern, url)
+    if match:
+        owner = match.group(1)
+        name = match.group(2)
+        return owner, name
+    return None, None
