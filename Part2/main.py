@@ -281,6 +281,7 @@ def PackageUpdate(id):
 
 def metric_rate(id):
     # Checks Authorization
+    import Rate
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
         return err.auth_failure()
