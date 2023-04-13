@@ -49,8 +49,8 @@ def calculate_dependency_metric(requirements_file):
             match = re.search(r'==([0-9]+\.[0-9]+)', line)
             if match:
                 version = match.group(1)
-                if version.startswith('2.3.'):
-                    num_pinned_deps += 1
+                #if version.startswith('2.3.'):
+                num_pinned_deps += 1
         return float(num_pinned_deps) / num_deps
 
 # Need to find a way to get github URL , this only works if its on PYPI

@@ -281,13 +281,14 @@ def PackageUpdate(id):
 
 def metric_rate(id):
     # Checks Authorization
+    from compiledqueries import *
     import Rate
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
         return err.auth_failure()
 
     # Check if package exists
-    if id not in package_data:
+    if id not in package_data:  ##need to check if package exists in firebase.Do not know what its saved asA
         return jsonify({'error': 'Package not found'}), 404
 
     # Get package URL
