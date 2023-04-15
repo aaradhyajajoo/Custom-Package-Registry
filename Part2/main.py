@@ -6,10 +6,13 @@ import firebase_admin
 from flask import Flask, request, jsonify
 import json
 import os
-
+import sys
 # Errors
 from errors import Err_Class
 err = Err_Class()
+sys.path.insert(1, '/ECE_461-1')
+
+import compiledqueries
 
 app = Flask(__name__)  # Initializing Flask app
 
@@ -270,7 +273,7 @@ def PackageUpdate(id):
    # from compiledqueries import *
 
 
-   # from ECE_461-1 import compilequery.py
+#from ECE_461-1 import compilequery.py
 
    # busfactor = compilequery.getBusFactorScore(owner,name)
    #responsiveness = compilequery.getResponsiveMaintainersScore(owner, name)
@@ -279,22 +282,34 @@ def PackageUpdate(id):
    #ramp_up = compilequery.getLicenseScore(name, owner, file)
 
 
+
+
 def metric_rate(id):
     # Checks Authorization
-    from compiledqueries import *
+
+
     import Rate
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
         return err.auth_failure()
 
-    # Check if package exists
-    if id not in package_data:  ##need to check if package exists in firebase.Do not know what its saved asA
+    # Get package data from Firebase
+    ref = db.reference('packages')
+    all_packages = ref.get()
+    package_data = None
+    for firebaseID, p_data in all_packages.items():
+        metadata = p_data['metadata']
+        if id == metadata['ID']:
+            package_data = p_data
+            break
+    if package_data is None:
         return jsonify({'error': 'Package not found'}), 404
 
-    # Get package URL
-    url = Rate.get_github_url(id)
+    # Get package URL from package data
+    metadata = package_data['metadata']
+    url = metadata['Source']
     if url is None:
-        return jsonify({'error': 'Failed to retrieve GitHub URL'}), 500
+        return jsonify({'error': 'Rating of Package failed'}), 500
 
     # Get owner and name from GitHub URL
     owner, name = Rate.get_owner_and_name_from_github_url(url)
@@ -302,12 +317,13 @@ def metric_rate(id):
     # Calculate metrics
     code_review = Rate.calculate_reviewed_code_fraction(url)
     dependency = Rate.calculate_dependency_metric_from_id(id)
-    bus_factor = compilequery.getBusFactorScore(owner, name)
-    responsiveness = compilequery.getResponsiveMaintainersScore(owner, name)
-    correctness = compilequery.getCorrectnessScore(owner, name)
-    license_score = compilequery.getLicenseScore(name, owner)
-    ramp_up = compilequery.getRampUpScore(owner, name)
+    bus_factor = compiledqueries.getBusFactorScore(owner, name)
+    responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+    correctness = compiledqueries.getCorrectnessScore(owner, name)
+    license_score = compiledqueries.getLicenseScore(name, owner)
+    ramp_up = compiledqueries.getRampUpScore(owner, name)
 
+    #if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None)
     # Calculate net score
     net_score = Rate.calculate_net_score(code_review, dependency, bus_factor, responsiveness, correctness, license_score, ramp_up)
 
@@ -317,8 +333,8 @@ def metric_rate(id):
                     'RampUp': ramp_up,
                     'ResponsiveMaintainer': responsiveness,
                     'LicenseScore': license_score,
-                    'GoodPinningPractice': 0,
-                    'PullRequest': 0,
+                    'GoodPinningPractice': dependency,
+                    'PullRequest': code_review,
                     'NetScore': net_score})
     return(metric,200)
 

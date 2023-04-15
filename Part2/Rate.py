@@ -100,6 +100,6 @@ def get_owner_and_name_from_github_url(url):
         return owner, name
     return None, None
 
-def calculate_net_score(code_review, dependency, bus_factor, responsiveness, correctness, license_score, ramp_up):
-  net_score = 0  ##add formula
-  return net_score
+#def calculate_net_score(code_review, dependency, bus_factor, responsiveness, correctness, license_score, ramp_up):
+ # net_score = 0  ##add formula
+  #return net_score
