@@ -316,7 +316,7 @@ def metric_rate(id):
 
     # Calculate metrics
     code_review = Rate.calculate_reviewed_code_fraction(url)
-    dependency = Rate.calculate_dependency_metric_from_id(id)
+    dependency = Rate.calculate_dependency_metric(id)
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
     correctness = compiledqueries.getCorrectnessScore(owner, name)
