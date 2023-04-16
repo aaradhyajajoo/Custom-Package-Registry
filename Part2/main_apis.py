@@ -5,6 +5,7 @@
 from flask import Flask, request
 import requests
 import json
+import re
 
 # Errors
 from errors import Err_Class
