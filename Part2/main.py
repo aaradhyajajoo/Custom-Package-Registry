@@ -20,13 +20,6 @@ app = Flask(__name__)  # Initializing Flask app
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
 
-'''Initialize Firebase Admin SDK with your project's service account credentials'''
-
-cred = credentials.Certificate("service_account.json")
-
-firebase_admin.initialize_app(cred, {
-    'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
-})
 
 '''Endpoints'''
 
@@ -280,5 +273,10 @@ def index():
 if __name__ == '__main__':
     # import os
     decode_service_account()
+    '''Initialize Firebase Admin SDK with your project's service account credentials'''
+    cred = credentials.Certificate("Part2/service_account.json")
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
+    })
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=True)
