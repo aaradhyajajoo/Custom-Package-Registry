@@ -3,7 +3,6 @@ import re
 import os
 from github import Github
 import tempfile
-import zipfile
 import requests
 
 

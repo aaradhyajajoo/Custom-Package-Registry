@@ -7,6 +7,7 @@ from flask import Flask, request
 import json
 import os
 from firestore import decode_service_account
+import re
 
 # Errors
 from errors import Err_Class
