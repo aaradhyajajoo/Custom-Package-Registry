@@ -269,7 +269,7 @@ def metric_rate(id):
 def index():
     return 'Hello, from Aaradhya, Eshaan, Tanvi and Ilan!'
 
-@app.route('/package/byRegEx/<regex>/', methods=['GET'])
+@app.route('/package/byRegEx/<regex>/', methods=['POST'])
 def package_by_regex(regex):
     # format the regex to make it compatible with code.
     regex_pattern = regex.strip()
