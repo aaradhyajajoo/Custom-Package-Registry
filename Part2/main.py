@@ -149,14 +149,16 @@ def list_of_packages():
 @app.route('/reset/', methods=['DELETE'])
 def reset_registry():
     # Checks Authorization
-    authorization = None
-    authorization = request.headers.get("X-Authorization")
-    if authorization is None:
-        return err.no_permission()
-    ref = db.reference('packages')
-    ref.delete()
+    print("hereee")
+    return err.success()
+    # authorization = None
+    # authorization = request.headers.get("X-Authorization")
+    # if authorization is None:
+    #     return err.no_permission()
+    # ref = db.reference('packages')
+    # ref.delete()
 
-    return err.success()  # Check return value
+    # return err.success()  # Check return value
 
 # GET, PUT, DELETE - Package with given ID in endpoint
 
@@ -269,6 +271,7 @@ def metric_rate(id):
 def index():
     return 'Hello, from Aaradhya, Eshaan, Tanvi and Ilan!'
 
+
 @app.route('/package/byRegEx/<regex>/', methods=['POST'])
 def package_by_regex(regex):
     # format the regex to make it compatible with code.
@@ -289,14 +292,14 @@ def package_by_regex(regex):
     # Return the response as the HTTP response body with 200 status code
     return {'packages': response}, 200
 
+
 def search_packages_by_regex(regex_pattern):
     # Implement the search logic that uses the regular expression pattern
 
     packages = [
-    #     #Not really sure of package structure, can change later. Below is an example
-    #     {'name': '...'},
+        #     #Not really sure of package structure, can change later. Below is an example
+        #     {'name': '...'},
     ]
-
 
     packages = []
 
@@ -309,7 +312,7 @@ def search_packages_by_regex(regex_pattern):
 
     matched_packages = []
     for package in packages:
-        #Also subjest to change based of structure. For now this is based off of structure
+        # Also subjest to change based of structure. For now this is based off of structure
         if re.search(regex_pattern, package['name']):
             matched_packages.append(package)
 
