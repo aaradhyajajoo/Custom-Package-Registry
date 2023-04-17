@@ -325,8 +325,10 @@ def metric_rate(id):
 
     #if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None)
     # Calculate net score
-    net_score = Rate.calculate_net_score(code_review, dependency, bus_factor, responsiveness, correctness, license_score, ramp_up)
+    #calcFinalScore(bf, lc, cr, ru, rm, owner_url):
 
+    net_score_old = compiledqueries.calcFinalScore(bus_factor,license_score,correctness, ramp_up, responsiveness)
+    net_score = 0 
     # Return result
     metric = jsonify({'BusFactor': bus_factor,
                     'Correctness': correctness,
