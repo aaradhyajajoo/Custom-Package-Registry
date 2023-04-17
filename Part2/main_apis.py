@@ -244,9 +244,11 @@ def package_by_regex():
 
 def search_packages_by_regex(regex_pattern):
     # Implement the search logic that uses the regular expression pattern
+
+    """packages probably already defined elsewhere in this file, for now making it an empty list"""
     packages = [
-        #Not really sure of package structure, can change later. Below is an example
-        {'name': '...'},
+    #     #Not really sure of package structure, can change later. Below is an example
+    #     {'name': '...'},
     ]
 
     matched_packages = []
