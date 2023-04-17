@@ -6,13 +6,17 @@ import firebase_admin
 from flask import Flask, request, jsonify
 import json
 import os
-import sys
+
+from firestore import decode_service_account
+
+
 # Errors
 from errors import Err_Class
 err = Err_Class()
 sys.path.insert(1, '/ECE_461-1')
 
 import compiledqueries
+
 
 app = Flask(__name__)  # Initializing Flask app
 
@@ -21,13 +25,6 @@ app = Flask(__name__)  # Initializing Flask app
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
 
-'''Initialize Firebase Admin SDK with your project's service account credentials'''
-
-cred = credentials.Certificate("service_account.json")
-
-firebase_admin.initialize_app(cred, {
-    'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
-})
 
 '''Endpoints'''
 
@@ -157,14 +154,16 @@ def list_of_packages():
 @app.route('/reset/', methods=['DELETE'])
 def reset_registry():
     # Checks Authorization
-    authorization = None
-    authorization = request.headers.get("X-Authorization")
-    if authorization is None:
-        return err.no_permission()
-    ref = db.reference('packages')
-    ref.delete()
+    print("hereee")
+    return err.success()
+    # authorization = None
+    # authorization = request.headers.get("X-Authorization")
+    # if authorization is None:
+    #     return err.no_permission()
+    # ref = db.reference('packages')
+    # ref.delete()
 
-    return err.success()  # Check return value
+    # return err.success()  # Check return value
 
 # GET, PUT, DELETE - Package with given ID in endpoint
 
@@ -244,7 +243,6 @@ def PackageUpdate(id):
     return json.dumps({'Success': 'True'}), 200
 
 
-
 @app.route('/package/<id>/rate/', methods=['GET'])
 
 
@@ -307,12 +305,68 @@ def metric_rate(id):
     return(metric,200)
 
 
+
+
+
 @app.route('/')
 def index():
     return 'Hello, from Aaradhya, Eshaan, Tanvi and Ilan!'
 
 
+@app.route('/package/byRegEx/<regex>/', methods=['POST'])
+def package_by_regex(regex):
+    # format the regex to make it compatible with code.
+    regex_pattern = regex.strip()
+
+    # get the packages from the regex
+    matched_packages = search_packages_by_regex(regex_pattern)
+
+    # JSON format
+    response = []
+    for package in matched_packages:
+        package_metadata = {
+            'Version': package.version,
+            'Name': package.name
+        }
+        response.append(package_metadata)
+
+    # Return the response as the HTTP response body with 200 status code
+    return {'packages': response}, 200
+
+
+def search_packages_by_regex(regex_pattern):
+    # Implement the search logic that uses the regular expression pattern
+
+    packages = [
+        #     #Not really sure of package structure, can change later. Below is an example
+        #     {'name': '...'},
+    ]
+
+    packages = []
+
+    ref = db.reference('packages')
+    all_packages = ref.get()
+
+    for firebaseID, p_data in all_packages.items():
+        metadata = p_data['metadata']
+        packages.append(p_data["Name"])
+
+    matched_packages = []
+    for package in packages:
+        # Also subjest to change based of structure. For now this is based off of structure
+        if re.search(regex_pattern, package['name']):
+            matched_packages.append(package)
+
+    return matched_packages
+
+
 if __name__ == '__main__':
     # import os
+    decode_service_account()
+    '''Initialize Firebase Admin SDK with your project's service account credentials'''
+    cred = credentials.Certificate("Part2/service_account.json")
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
+    })
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=True)
