@@ -149,14 +149,12 @@ def list_of_packages():
 @app.route('/reset/', methods=['DELETE'])
 def reset_registry():
     # Checks Authorization
-    print("hereee")
-    return err.success()
-    # authorization = None
-    # authorization = request.headers.get("X-Authorization")
-    # if authorization is None:
-    #     return err.no_permission()
-    # ref = db.reference('packages')
-    # ref.delete()
+    authorization = None
+    authorization = request.headers.get("X-Authorization")
+    if authorization is None:
+        return err.no_permission()
+    ref = db.reference('packages')
+    ref.delete()
 
     # return err.success()  # Check return value
 
@@ -269,7 +267,7 @@ def metric_rate(id):
 
 @app.route('/')
 def index():
-    return 'Hello, from Aaradhya, Eshaan, Tanvi and Ilan!'
+    return db.reference('packages')
 
 
 @app.route('/package/byRegEx/<regex>/', methods=['POST'])
