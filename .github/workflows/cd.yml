@@ -27,7 +27,7 @@ jobs:
       run: |
         pip3 install --upgrade pip
         pip install firebase-admin
-        pip install -r requirements.txt
+        pip install -r Part2/requirements.txt
         gcloud components install cloud-datastore-emulator beta --quiet
 
     - name: Deploy to app engine
