@@ -245,11 +245,20 @@ def package_by_regex():
 def search_packages_by_regex(regex_pattern):
     # Implement the search logic that uses the regular expression pattern
 
-    """packages probably already defined elsewhere in this file, for now making it an empty list"""
     packages = [
     #     #Not really sure of package structure, can change later. Below is an example
     #     {'name': '...'},
     ]
+
+
+    packages = []
+
+    ref = db.reference('packages')
+    all_packages = ref.get()
+
+    for firebaseID, p_data in all_packages.items():
+        metadata = p_data['metadata']
+        packages.append(p_data["Name"])
 
     matched_packages = []
     for package in packages:
@@ -258,20 +267,6 @@ def search_packages_by_regex(regex_pattern):
             matched_packages.append(package)
 
     return matched_packages
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
