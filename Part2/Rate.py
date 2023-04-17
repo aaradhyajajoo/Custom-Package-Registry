@@ -15,10 +15,10 @@ def calculate_dependency_metric(package_id):
     metadata = response.json()
 
     # Extract package name and version requirements
-    name = metadata['info']['name']
+    name = metadata['name']
     if 'requires_dist' not in metadata['info']:
         return 1.0
-    requirements = metadata['info']['requires_dist']
+    #requirements = metadata['info']['requires_dist']
 
     # Download and extract package files
     download_url = metadata['urls'][0]['url']

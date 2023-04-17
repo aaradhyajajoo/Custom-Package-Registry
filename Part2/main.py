@@ -247,40 +247,6 @@ def PackageUpdate(id):
 
 @app.route('/package/<id>/rate/', methods=['GET'])
 
-#def toJSON(self):
-   # return json.dumps(self, default=lambda o: o.__dict__,
-    #        sort_keys=True, indent=4)
-
-#def metric_rate(id):
-    # Checks Authorization
-        # Check if package exists
-  #  if package_id not in packages:
-   #     return jsonify({'error': 'Package not found'}), 404
-    #uthorization = None
-    #authorization = request.headers.get("X-Authorization")
-    #if authorization is None:
-     #PackageUpdate(id)
-    #get package URL
-    #import Rate
-    #url = Rate.get_github_url(id)
-    #if url is None:
-    #    return 0 #error.set("rating of package failed", 500)
-    #code_review = Rate.calculate_reviewed_code_fraction(url)
-    #dependecy  = Rate.calculate_dependency_metric_from_id(id)
-    #import files from ECE_461-1
-    #import os
-    #os.system('cd ECE_461-1 ')
-   # from compiledqueries import *
-
-
-#from ECE_461-1 import compilequery.py
-
-   # busfactor = compilequery.getBusFactorScore(owner,name)
-   #responsiveness = compilequery.getResponsiveMaintainersScore(owner, name)
-   #correctness  = compilequery. getResponsiveMaintainersScore(owner, name)
-   #license_score = compilequery.getLicenseScore(name, owner, file)
-   #ramp_up = compilequery.getLicenseScore(name, owner, file)
-
 
 
 
@@ -306,8 +272,8 @@ def metric_rate(id):
         return jsonify({'error': 'Package not found'}), 404
 
     # Get package URL from package data
-    metadata = package_data['metadata']
-    url = metadata['Source']
+    data = package_data['data']
+    url = data['URL']
     if url is None:
         return jsonify({'error': 'Rating of Package failed'}), 500
 
@@ -328,7 +294,7 @@ def metric_rate(id):
     #calcFinalScore(bf, lc, cr, ru, rm, owner_url):
 
     net_score_old = compiledqueries.calcFinalScore(bus_factor,license_score,correctness, ramp_up, responsiveness)
-    net_score = 0 
+    net_score = 0
     # Return result
     metric = jsonify({'BusFactor': bus_factor,
                     'Correctness': correctness,
