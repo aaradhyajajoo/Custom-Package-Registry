@@ -6,7 +6,7 @@ import firebase_admin
 from flask import Flask, request
 import json
 import os
-
+from firestore import decode_service_account
 
 # Errors
 from errors import Err_Class
@@ -244,10 +244,10 @@ def PackageUpdate(id):
 
 
 @app.route('/package/<id>/rate/', methods=['GET'])
-
 def toJSON(self):
     return json.dumps(self, default=lambda o: o.__dict__,
-            sort_keys=True, indent=4)
+                      sort_keys=True, indent=4)
+
 
 def metric_rate(id):
     # Checks Authorization
@@ -256,24 +256,20 @@ def metric_rate(id):
     if authorization is None:
         return err.auth_failure()
     PackageUpdate(id)
-    #get package URL
+    # get package URL
     import Rate
     url = Rate.get_github_url(id)
     if url is None:
-        return 0 #error.set("rating of package failed", 500)
+        return 0  # error.set("rating of package failed", 500)
     code_review = Rate.calculate_reviewed_code_fraction(url)
-    dependecy  = Rate.calculate_dependency_metric_from_id(id)
+    dependecy = Rate.calculate_dependency_metric_from_id(id)
 
-
-
-    #from ECE_461-1 import compilequery.py
-   # busfactor = compilequery.getBusFactorScore(owner,name)
-   #responsiveness = compilequery.getResponsiveMaintainersScore(owner, name)
-   #correctness  = compilequery. getResponsiveMaintainersScore(owner, name)
-   #license_score = compilequery.getLicenseScore(name, owner, file)
-   #ramp_up = compilequery.getLicenseScore(name, owner, file)
-   
-
+    # from ECE_461-1 import compilequery.py
+    # busfactor = compilequery.getBusFactorScore(owner,name)
+    # responsiveness = compilequery.getResponsiveMaintainersScore(owner, name)
+    # correctness  = compilequery. getResponsiveMaintainersScore(owner, name)
+    # license_score = compilequery.getLicenseScore(name, owner, file)
+    # ramp_up = compilequery.getLicenseScore(name, owner, file)
 
 
 @app.route('/')
@@ -283,5 +279,6 @@ def index():
 
 if __name__ == '__main__':
     # import os
+    decode_service_account()
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=True)
