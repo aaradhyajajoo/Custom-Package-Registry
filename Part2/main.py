@@ -268,7 +268,7 @@ def metric_rate(id):
 
 @app.route('/')
 def index():
-    return db.reference('packages')
+    return "Hello World!"
 
 
 @app.route('/package/byRegEx/<regex>/', methods=['POST'])
