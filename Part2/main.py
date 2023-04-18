@@ -8,11 +8,14 @@ import json
 import os
 from firestore import decode_service_account
 import re
+import sys
 
 # Errors
 from errors import Err_Class
 err = Err_Class()
+sys.path.insert(1, '/ECE_461-1')
 
+import compiledqueries
 
 app = Flask(__name__)  # Initializing Flask app
 
