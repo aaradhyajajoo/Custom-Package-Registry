@@ -60,30 +60,19 @@ def extract_repo_info(url):
     # Check if URL is an npm package URL
     npm_match = re.match(r'^https?://(?:www\.)?npmjs\.com/package/([^/]+)/?$', url)
     if npm_match:
-        package_name = npm_match.group(1)
-        # Make request to npm registry API
-        npm_api_url = f'https://registry.npmjs.org/{package_name}'
-        response = requests.get(npm_api_url)
-        if response.status_code != 200:
-            return None
-        package_info = response.json()
-        # Extract repository information from package info
-        repo_url = package_info.get('repository', {}).get('url')
-        if not repo_url:
-            return None
-        github_match = re.match(r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', repo_url)
-        if github_match:
-            owner = github_match.group(1)
-            repo_name = github_match.group(2)
-            return (owner, repo_name)
+        response = requests.get(url)
+        repo_url = response.json()['repository']['url']
+        repo_url = repo_url.split('//')[1].split('@')[-1].split(':')[0].replace('.git', '')
+        owner, repo_name = repo_url.split('/')
+        return owner, repo_name
     # Check if URL is a GitHub repository URL
     github_match = re.match(r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
     if github_match:
         owner = github_match.group(1)
         repo_name = github_match.group(2)
-        return (owner, repo_name)
+        return owner, repo_name
     # URL is not a valid npm package URL or GitHub repository URL
-    return None
+    return None, None
 
 
 def calculate_review_fraction(owner, repo):
