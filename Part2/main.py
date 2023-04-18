@@ -3,7 +3,7 @@
 from firebase_admin import db
 from firebase_admin import credentials
 import firebase_admin
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import json
 import os
 from firestore import decode_service_account
@@ -254,8 +254,6 @@ def toJSON(self):
 
 def metric_rate(id):
     # Checks Authorization
-
-
     import Rate
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
@@ -271,16 +269,16 @@ def metric_rate(id):
             package_data = p_data
             break
     if package_data is None:
-        return jsonify({'error': 'Package not found'}), 404
+        return err.package_doesNot_exist
 
     # Get package URL from package data
     data = package_data['data']
     url = data['URL']
     if url is None:
-        return jsonify({'error': 'Rating of Package failed'}), 500
+        return err.unexpected_error
 
     # Get owner and name from GitHub URL
-    owner, name = Rate.get_owner_and_name_from_github_url(url)
+    owner, name = Rate.extract_repo_info(url)
 
     # Calculate metrics
     code_review = Rate.calculate_reviewed_code_fraction(url)

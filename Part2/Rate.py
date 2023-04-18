@@ -56,21 +56,33 @@ def calculate_dependency_metric(package_id):
             else:
                 return float(num_pinned_deps) / num_deps
 
-# Need to find a way to get github URL , this only works if its on PYPI
-def get_github_url(package_id):
-    """Get the GitHub URL of a package given its ID"""
-    url = f'https://pypi.org/pypi/{package_id}/json'
-    response = re.get(url)
-    if response.status_code != 200:
-        return None
-    data = response.json()
-    info = data['info']
-    if 'project_urls' in info:
-        project_urls = info['project_urls']
-        if 'Source' in project_urls:
-            source_url = project_urls['Source']
-            if 'github.com' in source_url:
-                return source_url
+def extract_repo_info(url):
+    # Check if URL is an npm package URL
+    npm_match = re.match(r'^https?://(?:www\.)?npmjs\.com/package/([^/]+)/?$', url)
+    if npm_match:
+        package_name = npm_match.group(1)
+        # Make request to npm registry API
+        npm_api_url = f'https://registry.npmjs.org/{package_name}'
+        response = requests.get(npm_api_url)
+        if response.status_code != 200:
+            return None
+        package_info = response.json()
+        # Extract repository information from package info
+        repo_url = package_info.get('repository', {}).get('url')
+        if not repo_url:
+            return None
+        github_match = re.match(r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', repo_url)
+        if github_match:
+            owner = github_match.group(1)
+            repo_name = github_match.group(2)
+            return (owner, repo_name)
+    # Check if URL is a GitHub repository URL
+    github_match = re.match(r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
+    if github_match:
+        owner = github_match.group(1)
+        repo_name = github_match.group(2)
+        return (owner, repo_name)
+    # URL is not a valid npm package URL or GitHub repository URL
     return None
 
 
