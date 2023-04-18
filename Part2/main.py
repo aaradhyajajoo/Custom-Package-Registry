@@ -13,7 +13,7 @@ import sys
 # Errors
 from errors import Err_Class
 err = Err_Class()
-sys.path.insert(1, '/Part2/ECE_461-1')
+sys.path.insert(1, 'ECE_461-1')
 
 import compiledqueries
 
@@ -361,7 +361,7 @@ if __name__ == '__main__':
     # import os
     decode_service_account()
     '''Initialize Firebase Admin SDK with your project's service account credentials'''
-    cred = credentials.Certificate("Part2/service_account.json")
+    cred = credentials.Certificate("service_account.json")
     firebase_admin.initialize_app(cred, {
         'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
     })
