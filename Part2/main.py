@@ -149,7 +149,6 @@ def list_of_packages():
 # 6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 # DELETE Reset Registry
 
-
 @app.route('/reset/', methods=['DELETE'])
 def reset_registry():
     # Checks Authorization
