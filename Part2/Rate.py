@@ -86,22 +86,28 @@ def extract_repo_info(url):
     return None
 
 
-def calculate_reviewed_code_fraction(github_url):
-    """Calculate the fraction of project code introduced through pull requests with code reviews"""
-    g = Github()
-    repo = g.get_repo(github_url.split('github.com/')[1].strip('/'))
-    pull_request_commits = set()
-    for pr in repo.get_pulls(state='closed'):
-        if pr.merged:
-            for commit in pr.get_commits():
-                pull_request_commits.add(commit.sha)
-    total_lines = 0
-    reviewed_lines = 0
-    for commit in repo.get_commits():
-        if commit.sha in pull_request_commits:
-            for file in commit.files:
-                reviewed_lines += file.changes
-        for file in commit.files:
-            total_lines += file.changes
-    return float(reviewed_lines) / total_lines if total_lines > 0 else 0.0
-#hi
+def calculate_pull_request_review_fraction(owner, repo):
+    # Get pull request data from GitHub API
+    api_url = f'https://api.github.com/repos/{owner}/{repo}/pulls'
+    headers = {'Accept': 'application/vnd.github.v3+json'}
+    response = requests.get(api_url, headers=headers)
+
+    # Check for errors
+    if response.status_code != 200:
+        return 0.0
+
+    # Calculate review fraction
+    pull_requests = response.json()
+    reviewed_code = 0
+    total_code = 0
+    for pr in pull_requests:
+        if pr['state'] == 'closed' and pr['merged_at'] is not None:
+            pr_response = requests.get(pr['url'], headers=headers)
+            pr_data = pr_response.json()
+            total_code += pr_data['additions'] + pr_data['deletions']
+            if pr_data['review_comments'] > 0 or pr_data['comments'] > 0:
+                reviewed_code += pr_data['additions'] + pr_data['deletions']
+    if total_code == 0:
+        return 0.0
+    return reviewed_code / total_code
+
