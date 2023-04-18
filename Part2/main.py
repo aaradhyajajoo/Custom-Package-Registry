@@ -281,7 +281,7 @@ def metric_rate(id):
     owner, name = Rate.extract_repo_info(url)
 
     # Calculate metrics
-    code_review = Rate.calculate_reviewed_code_fraction(url)
+    code_review = Rate.calculate_review_fraction(owner,name)
     dependency = Rate.calculate_dependency_metric(id)
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)

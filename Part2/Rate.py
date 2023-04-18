@@ -86,7 +86,7 @@ def extract_repo_info(url):
     return None
 
 
-def calculate_pull_request_review_fraction(owner, repo):
+def calculate_review_fraction(owner, repo):
     # Get pull request data from GitHub API
     api_url = f'https://api.github.com/repos/{owner}/{repo}/pulls'
     headers = {'Accept': 'application/vnd.github.v3+json'}
