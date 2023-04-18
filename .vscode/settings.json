@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./Part2/ECE-461"
+    ]
+}

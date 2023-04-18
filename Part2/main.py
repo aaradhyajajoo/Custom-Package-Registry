@@ -3,15 +3,20 @@
 from firebase_admin import db
 from firebase_admin import credentials
 import firebase_admin
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import json
 import os
+
 from firestore import decode_service_account
 import re
+
 
 # Errors
 from errors import Err_Class
 err = Err_Class()
+sys.path.insert(1, '/ECE_461-1')
+
+import compiledqueries
 
 
 app = Flask(__name__)  # Initializing Flask app
@@ -238,32 +243,68 @@ def PackageUpdate(id):
 
 
 @app.route('/package/<id>/rate/', methods=['GET'])
-def toJSON(self):
-    return json.dumps(self, default=lambda o: o.__dict__,
-                      sort_keys=True, indent=4)
+
+
 
 
 def metric_rate(id):
     # Checks Authorization
-    authorization = None
+
+
+    import Rate
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
         return err.auth_failure()
-    PackageUpdate(id)
-    # get package URL
-    import Rate
-    url = Rate.get_github_url(id)
-    if url is None:
-        return 0  # error.set("rating of package failed", 500)
-    code_review = Rate.calculate_reviewed_code_fraction(url)
-    dependecy = Rate.calculate_dependency_metric_from_id(id)
 
-    # from ECE_461-1 import compilequery.py
-    # busfactor = compilequery.getBusFactorScore(owner,name)
-    # responsiveness = compilequery.getResponsiveMaintainersScore(owner, name)
-    # correctness  = compilequery. getResponsiveMaintainersScore(owner, name)
-    # license_score = compilequery.getLicenseScore(name, owner, file)
-    # ramp_up = compilequery.getLicenseScore(name, owner, file)
+    # Get package data from Firebase
+    ref = db.reference('packages')
+    all_packages = ref.get()
+    package_data = None
+    for firebaseID, p_data in all_packages.items():
+        metadata = p_data['metadata']
+        if id == metadata['ID']:
+            package_data = p_data
+            break
+    if package_data is None:
+        return jsonify({'error': 'Package not found'}), 404
+
+    # Get package URL from package data
+    data = package_data['data']
+    url = data['URL']
+    if url is None:
+        return jsonify({'error': 'Rating of Package failed'}), 500
+
+    # Get owner and name from GitHub URL
+    owner, name = Rate.get_owner_and_name_from_github_url(url)
+
+    # Calculate metrics
+    code_review = Rate.calculate_reviewed_code_fraction(url)
+    dependency = Rate.calculate_dependency_metric(id)
+    bus_factor = compiledqueries.getBusFactorScore(owner, name)
+    responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+    correctness = compiledqueries.getCorrectnessScore(owner, name)
+    license_score = compiledqueries.getLicenseScore(name, owner)
+    ramp_up = compiledqueries.getRampUpScore(owner, name)
+
+    #if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None)
+    # Calculate net score
+    #calcFinalScore(bf, lc, cr, ru, rm, owner_url):
+
+    net_score_old = compiledqueries.calcFinalScore(bus_factor,license_score,correctness, ramp_up, responsiveness)
+    net_score = 0
+    # Return result
+    metric = jsonify({'BusFactor': bus_factor,
+                    'Correctness': correctness,
+                    'RampUp': ramp_up,
+                    'ResponsiveMaintainer': responsiveness,
+                    'LicenseScore': license_score,
+                    'GoodPinningPractice': dependency,
+                    'PullRequest': code_review,
+                    'NetScore': net_score})
+    return(metric,200)
+
+
+
 
 
 @app.route('/')
