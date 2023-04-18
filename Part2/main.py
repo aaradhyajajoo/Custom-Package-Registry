@@ -13,7 +13,7 @@ import sys
 # Errors
 from errors import Err_Class
 err = Err_Class()
-sys.path.insert(1, '/ECE_461-1')
+sys.path.insert(1, '/Part2/ECE_461-1')
 
 import compiledqueries
 
