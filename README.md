@@ -58,5 +58,3 @@ for their npm modules. Our system will be accessible via a web browser interface
 - Aaradhya Jajoo
 - Ilan Benschikovski
 - Tanvi Kalaskar 
-
-
