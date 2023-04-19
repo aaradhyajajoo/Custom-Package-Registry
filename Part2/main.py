@@ -17,7 +17,7 @@ PORT_NUMBER = 8080
 err = Err_Class()
 
 app = Flask(__name__)  # Initializing Flask app
-
+firebase_admin.initialize_app()
 # Firestore
 
 '''Global Variable(s)'''
@@ -445,8 +445,5 @@ if __name__ == '__main__':
     decode_service_account()
     '''Initialize Firebase Admin SDK with your project's service account credentials'''
     cred = credentials.Certificate("service_account.json")
-    firebase_admin.initialize_app(credential=cred, options={
-        'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
-    })
     port = int(os.environ.get('PORT', PORT_NUMBER))
     app.run(host='0.0.0.0', port=port, debug=True)
