@@ -332,6 +332,11 @@ def metric_rate(id):
             check_package = True
             break
 
+    # Get package content
+    data = package_data['data']
+    content = data['Content']
+    decoded_content = base64.b64decode(content).decode('utf-8')
+    print(decoded_content)
     # Checking error 400
     if not check_package:
         return err.package_doesNot_exist()
@@ -345,6 +350,7 @@ def metric_rate(id):
     url = data['URL']
     if url is None:
         return err.missing_fields()
+
 
     # Get owner and name from GitHub URL
     owner, name = Rate.extract_repo_info(url)
