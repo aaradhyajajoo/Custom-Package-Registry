@@ -1,12 +1,8 @@
 '''Import Statements'''
 # Flask
-from firebase_admin import db
-from firebase_admin import credentials
+from firebase_admin import db, credentials
 import firebase_admin
-
-from flask import Flask, request,jsonify
-
-
+from flask import Flask, request, jsonify
 import json
 import os
 from firestore import decode_service_account
@@ -16,7 +12,6 @@ import sys
 import Rate
 
 PORT_NUMBER = 8080
-
 
 # Errors
 from errors import Err_Class
@@ -365,9 +360,9 @@ def metric_rate(id):
     license_score = 0
     ramp_up = 0
 
-    if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None):
-        # Calculate net score
-        calcFinalScore(bf, lc, cr, ru, rm, owner_url)
+    # if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None):
+    #     # Calculate net score
+    #     calcFinalScore(bf, lc, cr, ru, rm, owner_url)
 
     net_score = compiledqueries.calcFinalScore(bus_factor,license_score,correctness, ramp_up, responsiveness,owner)
     # net_score = 0
@@ -451,8 +446,6 @@ if __name__ == '__main__':
     decode_service_account()
     '''Initialize Firebase Admin SDK with your project's service account credentials'''
     cred = credentials.Certificate("service_account.json")
-    firebase_admin.initialize_app(cred, {
-        'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
-    })
+    default_app = firebase_admin.initialize_app()
     port = int(os.environ.get('PORT', PORT_NUMBER))
     app.run(host='0.0.0.0', port=port, debug=True)
