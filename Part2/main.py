@@ -17,12 +17,14 @@ PORT_NUMBER = 8080
 err = Err_Class()
 
 app = Flask(__name__)  # Initializing Flask app
-firebase_admin.initialize_app()
-# Firestore
-
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
 
+
+firebase_admin.initialize_app(options={
+    'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
+})
+# Firestore
 
 '''Endpoints'''
 
