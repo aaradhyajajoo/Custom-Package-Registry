@@ -1,5 +1,7 @@
 '''Import Statements'''
 # Flask
+from ECE_461_new import compiledqueries
+from errors import Err_Class
 from firebase_admin import db, credentials
 import firebase_admin
 from flask import Flask, request, jsonify
@@ -7,18 +9,12 @@ import json
 import os
 from firestore import decode_service_account
 import re
-import sys
-
 import Rate
 
 PORT_NUMBER = 8080
 
 # Errors
-from errors import Err_Class
 err = Err_Class()
-sys.path.insert(1, 'ECE_461-1')
-
-import compiledqueries
 
 app = Flask(__name__)  # Initializing Flask app
 
@@ -35,6 +31,8 @@ PROJECT_ID = "ece-461-ae1a9"
 # No metadata: curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
 
 # POST Package Create and POST Package Ingest
+
+
 @app.route('/package/', methods=['POST'])
 def create():
 
@@ -59,15 +57,15 @@ def create():
 
     # Checking error 404
     if not ID:
-        return err.malformed_req() 
+        return err.malformed_req()
 
-    # Checking error 404 
+    # Checking error 404
     if "Content" in data_field.keys() and "URL" in data_field.keys():
         return err.missing_fields()
 
-    ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''    
+    ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
     # Need to check error 424
-    
+
     # if rate < 0.5:
     #     err.disqualified_rating()
 
@@ -115,10 +113,10 @@ def create():
                 else:
                     return err.package_exists()
         else:
-            ref.push(package) 
+            ref.push(package)
 
     return err.success()
-    
+
 # Curl requests: curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
 # eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' \
 # --header 'Content-Type: application/json' --data '[{"Version":"1.2.3","Name":"Underscore"},{"Version":"1.2.3-2.1.0","Name":"Lodash"}]'
@@ -158,7 +156,7 @@ def list_of_packages():
     uniq_pack_list = []
     for query in package_queries:
         # Returning all packages
-        if query['Name'] == "*":  
+        if query['Name'] == "*":
             for package in all_packages.values():
                 pack_list.append(package['metadata'])
         # Returning specific packages
@@ -169,17 +167,18 @@ def list_of_packages():
                     if query['Name'] == package['metadata']['Name'] and query['Version'] == package['metadata']['Version']:
                         pack_list.append(package['metadata'])
 
-            uniq_pack_list = [dict(t) for t in {tuple(d.items()) for d in pack_list}]
-    
+            uniq_pack_list = [dict(t)
+                              for t in {tuple(d.items()) for d in pack_list}]
+
     save = []
-    j= 0
+    j = 0
     for i in range(offset):
         x = []
         while j < len(uniq_pack_list):
             if len(x) <= limit:
                 x.append(uniq_pack_list[j])
                 save.append(x[j])
-                j+=1
+                j += 1
 
     # print(save)
 
@@ -193,6 +192,7 @@ def list_of_packages():
 # 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI /
 # 6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 # DELETE Reset Registry
+
 
 @app.route('/reset/', methods=['DELETE'])
 def reset_registry():
@@ -220,7 +220,6 @@ def package_given_id(id):
         return PackageUpdate(id)
     if request.method == 'DELETE':
         return PackageDelete(id)
-        
 
 
 # Curl requests:
@@ -259,7 +258,6 @@ def PackageUpdate(id):
 
     if not id_exists:
         return err.malformed_req()
-    
 
     # Name, version, ID must match
     if (metadata['Name'] != data['metadata']['Name']) or (metadata['Version'] != data['metadata']['Version']) \
@@ -286,6 +284,7 @@ def PackageUpdate(id):
     ref.update(update_data)  # Updates DB
     return json.dumps({'message': 'Version is updated.'}), 200
 
+
 def PackageDelete(id):
     ref = db.reference('packages')
     all_packages = ref.get()
@@ -302,12 +301,11 @@ def PackageDelete(id):
             id_exists = True
             del_ref = db.reference('packages/'+firebaseID)
             del_ref.delete()
-            break # What to do if there are multiple packages to be deleted
+            break  # What to do if there are multiple packages to be deleted
     if not id_exists:
         return err.package_doesNot_exist()
 
     return json.dumps({'message': 'Package is deleted.'}), 200
-
 
 
 @app.route('/package/<id>/rate/', methods=['GET'])
@@ -331,7 +329,7 @@ def metric_rate(id):
 
             check_package = True
             break
-    
+
     # Checking error 400
     if not check_package:
         return err.package_doesNot_exist()
@@ -350,7 +348,7 @@ def metric_rate(id):
     owner, name = Rate.extract_repo_info(url)
 
     # Calculate metrics
-    code_review = Rate.calculate_review_fraction(owner,name)
+    code_review = Rate.calculate_review_fraction(owner, name)
     dependency = Rate.calculate_dependency_metric(id)
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
@@ -364,29 +362,30 @@ def metric_rate(id):
     #     # Calculate net score
     #     calcFinalScore(bf, lc, cr, ru, rm, owner_url)
 
-    net_score = compiledqueries.calcFinalScore(bus_factor,license_score,correctness, ramp_up, responsiveness,owner)
+    net_score = compiledqueries.calcFinalScore(
+        bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
     # net_score = 0
     # Return result
     metric = {'BusFactor': bus_factor,
-                    'Correctness': correctness,
-                    'RampUp': ramp_up,
-                    'ResponsiveMaintainer': responsiveness,
-                    'LicenseScore': license_score,
-                    'GoodPinningPractice': dependency,
-                    'PullRequest': code_review,
-                    'NetScore': net_score}
-    return json.dumps(metric),200
-
-
+              'Correctness': correctness,
+              'RampUp': ramp_up,
+              'ResponsiveMaintainer': responsiveness,
+              'LicenseScore': license_score,
+              'GoodPinningPractice': dependency,
+              'PullRequest': code_review,
+              'NetScore': net_score}
+    return json.dumps(metric), 200
 
 
 @app.route('/')
 def index():
-    return "Hello World!"
+    return jsonify(db.reference('packages').get())
+
 
 @app.route('/authenticate/', methods=['PUT'])
 def authenticate():
     return err.no_authentication()
+
 
 @app.route('/package/byRegEx/', methods=['POST'])
 def package_by_regex():
@@ -397,7 +396,7 @@ def package_by_regex():
     regex_pattern = regex['RegEx']
     if not regex_pattern:
         return err.missing_fields()
-    
+
     # get the packages from the regex
     matched_packages = search_packages_by_regex(regex_pattern)
 
@@ -446,6 +445,8 @@ if __name__ == '__main__':
     decode_service_account()
     '''Initialize Firebase Admin SDK with your project's service account credentials'''
     cred = credentials.Certificate("service_account.json")
-    default_app = firebase_admin.initialize_app()
+    firebase_admin.initialize_app(credential=cred, options={
+        'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
+    })
     port = int(os.environ.get('PORT', PORT_NUMBER))
     app.run(host='0.0.0.0', port=port, debug=True)
