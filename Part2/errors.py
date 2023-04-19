@@ -23,4 +23,16 @@ class Err_Class(object):
         return self.set_error(401, "You do not have permission to reset the registry.")
 
     def success(self):
-        return self.set_error(200, "Success.")
+        return self.set_error(201, "Success.")
+    
+    def missing_fields(self):
+        return self.set_error(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+
+    def disqualified_rating(self):
+        return self.set_error(424,"Package is not uploaded due to the disqualified rating.")
+    
+    def too_many_packages(self):
+        return self.set_error(413,"Too many packages returned.")
+    
+    def no_authentication(self):
+        return self.set_error(501,"This system does not support authentication.")

@@ -1,6 +1,5 @@
 import base64
 
-
 def decode_service_account():
     with open('service_account.txt', 'r') as f:
         with open('service_account.json', 'wb') as f2:
