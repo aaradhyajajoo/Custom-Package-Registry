@@ -4,6 +4,8 @@ import os
 
 token = ""
 # https://github.com/octocat/Hello-World
+token = ""
+
 try:
     token = os.environ['GITHUB_TOKEN']
 except KeyError:
