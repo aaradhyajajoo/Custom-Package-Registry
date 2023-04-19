@@ -1,0 +1,28 @@
+POST: /package
+    -> To do:
+        1) Add error 424 (check rating)
+    -> Test List: 
+        1) Both "Content" and "URL" added in data_field
+        2) ID not found in metadata
+        3) If name and id are different, append new unique key to db
+        4) Check ingestion
+POST: /packages
+    -> To do:
+        2) Add error 413 (Too many packages returned)
+    -> Test List: 
+DELETE: /reset
+    -> DONE
+GET, PUT, DELETE: /package/{id}
+    -> To do:
+        1) For DELETE, ask what happens if there are multiple packages to be deleted
+GET: /package/{id}/rate
+    ->
+PUT: /authenticate
+    -> DONE: Not to be included.
+GET, DELETE: /package/byName/{name}
+    -> DONE: Not to be included
+POST: /package/byRegex/{regex}
+    -> DONE
+
+
+curl -X 'GET' 'http://127.0.0.1:8080/package/cloudinary_npm/rate' -H 'accept: application/json' -H 'X-Authorization: kk'

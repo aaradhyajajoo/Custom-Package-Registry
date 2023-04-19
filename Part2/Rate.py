@@ -1,12 +1,12 @@
 import zipfile
 import re
 import os
-from github import Github
+# from github import Github
 import tempfile
 import requests
 
 
-def calculate_dependency_metric_from_id(package_id):
+def calculate_dependency_metric(package_id):
     # Retrieve package metadata
     response = requests.get(f'https://pypi.org/pypi/{package_id}/json/')
     if response.status_code != 200:
@@ -18,6 +18,8 @@ def calculate_dependency_metric_from_id(package_id):
     if 'requires_dist' not in metadata['info']:
         return 1.0
     requirements = metadata['info']['requires_dist']
+
+    #requirements = metadata['info']['requires_dist']
 
     # Download and extract package files
     download_url = metadata['urls'][0]['url']
@@ -31,61 +33,69 @@ def calculate_dependency_metric_from_id(package_id):
 
         # Calculate dependency metric
         requirements_file = os.path.join(tmpdir, name, 'requirements.txt')
-        return calculate_dependency_metric(requirements_file, requirements)
-
-
-def calculate_dependency_metric(requirements_file):
-    """Calculate the fraction of dependencies that are pinned to a specific major+minor version"""
-    if not os.path.exists(requirements_file):
-        return 1.0
-    with open(requirements_file, 'r') as f:
-        lines = f.readlines()
-        if len(lines) == 0:
+        if not os.path.exists(requirements_file):
             return 1.0
-        num_deps = len(lines)
-        num_pinned_deps = 0
-        for line in lines:
-            match = re.search(r'==([0-9]+\.[0-9]+)', line)
-            if match:
-                version = match.group(1)
-                if version.startswith('2.3.'):
-                    num_pinned_deps += 1
-        return float(num_pinned_deps) / num_deps
+        with open(requirements_file, 'r') as f:
+            lines = f.readlines()
+            if len(lines) == 0:
+                return 1.0
+            num_deps = len(lines)
+            num_pinned_deps = 0
+            for line in lines:
+                match = re.search(r'==([0-9]+\.[0-9]+)', line)
+                if match:
+                    version = match.group(1)
+                    if version.count('.') == 1:
+                        num_pinned_deps += 1
+            if num_deps == 0:
+                return 1.0
+            elif num_pinned_deps == 0:
+                return 0.0
+            elif num_pinned_deps == 1:
+                return 0.5
+            else:
+                return float(num_pinned_deps) / num_deps
 
-# Need to find a way to get github URL , this only works if its on PYPI
-def get_github_url(package_id):
-    """Get the GitHub URL of a package given its ID"""
-    url = f'https://pypi.org/pypi/{package_id}/json'
-    response = re.get(url)
+def extract_repo_info(url):
+    # Check if URL is an npm package URL
+    npm_match = re.match(r'^https?://(?:www\.)?npmjs\.com/package/([^/]+)/?$', url)
+    if npm_match:
+        response = requests.get(url)
+        repo_url = response.json()['repository']['url']
+        repo_url = repo_url.split('//')[1].split('@')[-1].split(':')[0].replace('.git', '')
+        owner, repo_name = repo_url.split('/')
+        return owner, repo_name
+    # Check if URL is a GitHub repository URL
+    github_match = re.match(r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
+    if github_match:
+        owner = github_match.group(1)
+        repo_name = github_match.group(2)
+        return owner, repo_name
+    # URL is not a valid npm package URL or GitHub repository URL
+    return None, None
+
+
+def calculate_review_fraction(owner, repo):
+    # Get pull request data from GitHub API
+    api_url = f'https://api.github.com/repos/{owner}/{repo}/pulls'
+    headers = {'Accept': 'application/vnd.github.v3+json'}
+    response = requests.get(api_url, headers=headers)
+
+    # Check for errors
     if response.status_code != 200:
-        return None
-    data = response.json()
-    info = data['info']
-    if 'project_urls' in info:
-        project_urls = info['project_urls']
-        if 'Source' in project_urls:
-            source_url = project_urls['Source']
-            if 'github.com' in source_url:
-                return source_url
-    return None
+        return 0.0
 
-
-def calculate_reviewed_code_fraction(github_url):
-    """Calculate the fraction of project code introduced through pull requests with code reviews"""
-    g = Github()
-    repo = g.get_repo(github_url.split('github.com/')[1].strip('/'))
-    pull_request_commits = set()
-    for pr in repo.get_pulls(state='closed'):
-        if pr.merged:
-            for commit in pr.get_commits():
-                pull_request_commits.add(commit.sha)
-    total_lines = 0
-    reviewed_lines = 0
-    for commit in repo.get_commits():
-        if commit.sha in pull_request_commits:
-            for file in commit.files:
-                reviewed_lines += file.changes
-        for file in commit.files:
-            total_lines += file.changes
-    return float(reviewed_lines) / total_lines if total_lines > 0 else 0.0
-#hi
+    # Calculate review fraction
+    pull_requests = response.json()
+    reviewed_code = 0
+    total_code = 0
+    for pr in pull_requests:
+        if pr['state'] == 'closed' and pr['merged_at'] is not None:
+            pr_response = requests.get(pr['url'], headers=headers)
+            pr_data = pr_response.json()
+            total_code += pr_data['additions'] + pr_data['deletions']
+            if pr_data['review_comments'] > 0 or pr_data['comments'] > 0:
+                reviewed_code += pr_data['additions'] + pr_data['deletions']
+    if total_code == 0:
+        return 0.0
+    return reviewed_code / total_code
