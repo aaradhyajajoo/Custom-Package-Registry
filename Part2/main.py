@@ -3,15 +3,20 @@
 from firebase_admin import db
 from firebase_admin import credentials
 import firebase_admin
+
 from flask import Flask, request,jsonify
+
+
 import json
 import os
 from firestore import decode_service_account
 import re
 import sys
+
 import Rate
 
 PORT_NUMBER = 8080
+
 
 # Errors
 from errors import Err_Class
@@ -194,7 +199,6 @@ def list_of_packages():
 # 6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 # DELETE Reset Registry
 
-
 @app.route('/reset/', methods=['DELETE'])
 def reset_registry():
     # Checks Authorization
@@ -310,6 +314,7 @@ def PackageDelete(id):
     return json.dumps({'message': 'Package is deleted.'}), 200
 
 
+
 @app.route('/package/<id>/rate/', methods=['GET'])
 def metric_rate(id):
     # Checks Authorization
@@ -320,6 +325,7 @@ def metric_rate(id):
 
     # Get package data from Firebase
     check_package = False
+
     ref = db.reference('packages')
     all_packages = ref.get()
     package_data = None
@@ -327,6 +333,7 @@ def metric_rate(id):
         metadata = p_data['metadata']
         if id == metadata['ID']:
             package_data = p_data
+
             check_package = True
             break
     
@@ -374,6 +381,8 @@ def metric_rate(id):
                     'PullRequest': code_review,
                     'NetScore': net_score}
     return json.dumps(metric),200
+
+
 
 
 @app.route('/')
