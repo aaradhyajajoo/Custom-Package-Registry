@@ -1,44 +1,44 @@
 '''Import Statements'''
-# Flask
+
+# Part 1 - Rating
 from ECE_461_new import compiledqueries
+from rate import *
+
+
+# Error Class
 from errors import Err_Class
+
+# Firebase Connection
 from firebase_admin import db, credentials
 import firebase_admin
 from flask import Flask, request, jsonify
 import json
 import os
 from firestore import decode_service_account
+
+# Regex Endpoint
 import re
-import Rate
-import base64
-import io
-import zipfile
-PORT_NUMBER = 8080
 
-# Errors
-err = Err_Class()
-
-app = Flask(__name__)  # Initializing Flask app
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
+PORT_NUMBER = 8080
 
+'''Inits'''
+err = Err_Class() # Errors
+app = Flask(__name__)  # Initializing Flask app
 decode_service_account()
-'''Initialize Firebase Admin SDK with your project's service account credentials'''
 cred = credentials.Certificate("service_account.json")
 firebase_admin.initialize_app(cred, options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
-# Firestore
+
 
 '''Endpoints'''
 
 # Curl requests:
 # Correct: curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'Content-Type: application/json'  -H 'accept: application/json' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"Content": "Check","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 # No metadata: curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
-
 # POST Package Create and POST Package Ingest
-
-
 @app.route('/package/', methods=['POST'])
 def create():
 
@@ -57,7 +57,8 @@ def create():
 
     metadata = data['metadata']
     ID = metadata['ID']
-
+    version = metadata['Version']
+    name = metadata['Name']
     data_field = data['data']
 
     # Checking error 404
@@ -88,15 +89,19 @@ def create():
         ref.push(package)  # Upload data to package
     else:  # If some packages already exist in the DB
         unique_id_list = []
+        unique_version_list = []
+        unique_name_list = []
         firebaseIDs_list = []
 
         # Extracts the IDs of the metadata in the DB
         for ids in json_store.keys():
             firebaseIDs_list.append(ids)
             unique_id_list.append(json_store[ids]['metadata']['ID'])
+            unique_version_list.append(json_store[ids]['metadata']['Version'])
+            unique_name_list.append(json_store[ids]['metadata']['Name'])
 
-        print(f'Unique id list = {unique_id_list}')
-        if ID in unique_id_list:
+        # print(f'Unique id list = {unique_id_list}')
+        if ID in unique_id_list and version not in unique_version_list and name not in unique_name_list:
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
             firebaseID = firebaseIDs_list[i]  # Gets firebase ID
@@ -313,11 +318,14 @@ def PackageDelete(id):
     return json.dumps({'message': 'Package is deleted.'}), 200
 
 
+# Curl req:
+# Correct: curl -X 'GET' 'http://127.0.0.1:8080/package/underscore/rate' -H 'accept: application/json' -H 'X-Authorization: f'
 @app.route('/package/<id>/rate/', methods=['GET'])
 def metric_rate(id):
     # Checks Authorization
-    # authorization = None
-    # authorization = request.headers.get("X-Authorization")
+    authorization = None
+    authorization = request.headers.get("X-Authorization")
+    # print(f'req = {request}')
     # if authorization is None:
     #     return err.auth_failure()
 
@@ -331,24 +339,8 @@ def metric_rate(id):
         metadata = p_data['metadata']
         if id == metadata['ID']:
             package_data = p_data
-
             check_package = True
             break
-
-    # Get package content
-    data = package_data['data']
-    content = data['Content']
-    content += '=' * (-len(content) % 4)
-    #encodings_to_try = ['utf-8', 'iso-8859-1', 'cp1252']
-    decoded_content = base64.b64decode(content).decode('iso-8859-1')
-    #decoded_content_bytes = decoded_content.encode('utf-8')
-
-
-    #with open("package.zip", "wb") as f:
-     #f.write(decoded_content_bytes)
-    #with zipfile.ZipFile("package.zip", "r") as zip_ref:
-     #zip_ref.extractall("/Part2")
-
 
 
     # Checking error 400
@@ -359,44 +351,56 @@ def metric_rate(id):
     if package_data is None:
         return err.package_doesNot_exist()
 
-    # Get package URL from package data
-   # data = package_data['data']
-    #url = data['URL']
-    #if url is None:
-     #   return err.missing_fields()
+    
+    # Get decoded package content
+    data = package_data['data']
+    if 'Content' in data.keys() and 'URL' not in data.keys():
+        print('reading content')
+        content = data['Content']
+        if content is None:
+            return err.missing_fields()
+        # print(content)
+        # content += '=' * (-len(content) % 4)
+        url = get_decoded_content(content)
 
+    elif 'Content' not in data.keys() and 'URL' in data.keys():
+        # Get package URL from package data
+        print('reading url')
+        url = data['URL']
+        if url is None:
+          return err.missing_fields()
 
-    # Get owner and name from GitHub URL
-    #owner, name = Rate.extract_repo_info(url)
+    
+    # # Get owner and name from GitHub URL
+    owner, name = extract_repo_info(url)
+    if owner or name is None:
+        return err.malformed_req() # Check
 
-    # Calculate metrics
-   # code_review = Rate.calculate_review_fraction(owner, name)
-    #dependency = Rate.calculate_dependency_metric(id)
-    #bus_factor = compiledqueries.getBusFactorScore(owner, name)
-    #responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
-   # correctness = compiledqueries.getCorrectnessScore(owner, name)
+    # # Calculate metrics
+    code_review = calculate_review_fraction(owner, name)
+    dependency = calculate_dependency_metric(id)
+    bus_factor = compiledqueries.getBusFactorScore(owner, name)
+    responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+    correctness = compiledqueries.getCorrectnessScore(owner, name)
     # license_score = compiledqueries.getLicenseScore(name, owner,'license.txt')
     # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
     license_score = 0
     ramp_up = 0
 
-    # if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None):
-    #     # Calculate net score
-    #     calcFinalScore(bf, lc, cr, ru, rm, owner_url)
-
-  #  net_score = compiledqueries.calcFinalScore(
-      #  bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
-    # net_score = 0
-    # Return result
-    metric = {#'BusFactor': bus_factor,
-              #'Correctness': correctness,
+    net_score = compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
+    # # net_score = 0
+    # # Return 
+    metric = {}
+    metric = {'BusFactor': bus_factor,
+              'Correctness': correctness,
               'RampUp': ramp_up,
-              #'ResponsiveMaintainer': responsiveness,
+              'ResponsiveMaintainer': responsiveness,
               'LicenseScore': license_score,
-              #'GoodPinningPractice': dependency,
-              #'PullRequest': code_review,
-              #'NetScore': net_score
+              'GoodPinningPractice': dependency,
+              'PullRequest': code_review,
+              'NetScore': net_score
               }
+
     return json.dumps(metric), 200
 
 
@@ -461,6 +465,7 @@ def search_packages_by_regex(regex_pattern):
             count += 1
 
     return matched_packages
+
 
 
 if __name__ == '__main__':

@@ -25,4 +25,4 @@ POST: /package/byRegex/{regex}
     -> DONE
 
 
-curl -X 'GET' 'http://127.0.0.1:8080/package/cloudinary_npm/rate' -H 'accept: application/json' -H 'X-Authorization: kk'
+curl -X 'GET' 'http://128.46.4.98:8080/package/underscore/rate' -H 'accept: application/json' -H 'X-Authorization: f'

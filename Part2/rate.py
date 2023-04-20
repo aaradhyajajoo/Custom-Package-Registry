@@ -1,10 +1,46 @@
+''' Import Statements '''
 import zipfile
 import re
 import os
-# from github import Github
 import tempfile
 import requests
+import binascii
+import base64
+import io
 
+
+def get_decoded_content(content):
+    # Get decoded file contents
+    try:
+        decoded_contents = base64.b64decode(content)
+    except binascii.Error:
+        return 'Binascii Error'
+
+    # Write to temporary file
+    tmpfile = tempfile.NamedTemporaryFile()
+    with open(tmpfile.name, "wb") as writefile:
+        writefile.write(decoded_contents)
+
+    try:
+        zipped_repo = zipfile.ZipFile(tmpfile.name)
+    except zipfile.BadZipFile:
+        return 'Invalid Zipfile'
+
+    # Get URL from package.json
+    for filename in zipped_repo.namelist():
+        if os.path.basename(filename) == "package.json":
+            for line in zipped_repo.open(filename):
+                if "github" in str(line) or "npmjs" in str(line):
+                    line_string = str(line, 'utf-8').strip()
+                    segments = line_string.split('"')
+                    clean_url = [i for i in segments if "github" in i or "npmjs" in i][0].strip()
+                    if clean_url.endswith(".git"):
+                        clean_url = clean_url[:-4]
+                    repo_url = url_handler.get_github_url(clean_url)
+                    zipped_repo.close()
+                    return repo_url
+
+    return 'No URL found' # For now
 
 def calculate_dependency_metric(package_id):
     # Retrieve package metadata
