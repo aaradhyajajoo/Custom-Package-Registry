@@ -10,7 +10,9 @@ import os
 from firestore import decode_service_account
 import re
 import Rate
-
+import base64
+import io
+import zipfile
 PORT_NUMBER = 8080
 
 # Errors
@@ -336,8 +338,17 @@ def metric_rate(id):
     # Get package content
     data = package_data['data']
     content = data['Content']
-    decoded_content = base64.b64decode(content).decode('utf-8')
-    print(decoded_content)
+    decoded_content = base64.standard_b64decode(content)
+    # read the decoded content into a ZipFile object
+    #zip_file = zipfile.ZipFile(io.BytesIO(decoded_content))
+
+    # iterate through the contents of the zip file
+   # for file in zip_file.namelist():
+     #print(file)
+     #with zip_file.open(file) as f:
+      #  print(f.read())
+
+
     # Checking error 400
     if not check_package:
         return err.package_doesNot_exist()
@@ -347,21 +358,21 @@ def metric_rate(id):
         return err.package_doesNot_exist()
 
     # Get package URL from package data
-    data = package_data['data']
-    url = data['URL']
-    if url is None:
-        return err.missing_fields()
+   # data = package_data['data']
+    #url = data['URL']
+    #if url is None:
+     #   return err.missing_fields()
 
 
     # Get owner and name from GitHub URL
-    owner, name = Rate.extract_repo_info(url)
+    #owner, name = Rate.extract_repo_info(url)
 
     # Calculate metrics
-    code_review = Rate.calculate_review_fraction(owner, name)
-    dependency = Rate.calculate_dependency_metric(id)
-    bus_factor = compiledqueries.getBusFactorScore(owner, name)
-    responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
-    correctness = compiledqueries.getCorrectnessScore(owner, name)
+   # code_review = Rate.calculate_review_fraction(owner, name)
+    #dependency = Rate.calculate_dependency_metric(id)
+    #bus_factor = compiledqueries.getBusFactorScore(owner, name)
+    #responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+   # correctness = compiledqueries.getCorrectnessScore(owner, name)
     # license_score = compiledqueries.getLicenseScore(name, owner,'license.txt')
     # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
     license_score = 0
@@ -371,18 +382,19 @@ def metric_rate(id):
     #     # Calculate net score
     #     calcFinalScore(bf, lc, cr, ru, rm, owner_url)
 
-    net_score = compiledqueries.calcFinalScore(
-        bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
+  #  net_score = compiledqueries.calcFinalScore(
+      #  bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
     # net_score = 0
     # Return result
-    metric = {'BusFactor': bus_factor,
-              'Correctness': correctness,
+    metric = {#'BusFactor': bus_factor,
+              #'Correctness': correctness,
               'RampUp': ramp_up,
-              'ResponsiveMaintainer': responsiveness,
+              #'ResponsiveMaintainer': responsiveness,
               'LicenseScore': license_score,
-              'GoodPinningPractice': dependency,
-              'PullRequest': code_review,
-              'NetScore': net_score}
+              #'GoodPinningPractice': dependency,
+              #'PullRequest': code_review,
+              #'NetScore': net_score
+              }
     return json.dumps(metric), 200
 
 
