@@ -338,15 +338,17 @@ def metric_rate(id):
     # Get package content
     data = package_data['data']
     content = data['Content']
-    decoded_content = base64.standard_b64decode(content)
-    # read the decoded content into a ZipFile object
-    #zip_file = zipfile.ZipFile(io.BytesIO(decoded_content))
+    content += '=' * (-len(content) % 4)
+    #encodings_to_try = ['utf-8', 'iso-8859-1', 'cp1252']
+    decoded_content = base64.b64decode(content).decode('iso-8859-1')
+    #decoded_content_bytes = decoded_content.encode('utf-8')
 
-    # iterate through the contents of the zip file
-   # for file in zip_file.namelist():
-     #print(file)
-     #with zip_file.open(file) as f:
-      #  print(f.read())
+
+    #with open("package.zip", "wb") as f:
+     #f.write(decoded_content_bytes)
+    #with zipfile.ZipFile("package.zip", "r") as zip_ref:
+     #zip_ref.extractall("/Part2")
+
 
 
     # Checking error 400
