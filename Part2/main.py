@@ -20,8 +20,10 @@ app = Flask(__name__)  # Initializing Flask app
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
 
-
-firebase_admin.initialize_app(options={
+decode_service_account()
+'''Initialize Firebase Admin SDK with your project's service account credentials'''
+cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(cred, options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 # Firestore
@@ -46,7 +48,6 @@ def create():
 
     # Gets the JSON data from the request
     data = request.get_json()
-    # print(f"data = {data}")
 
     # Checking error 404 - metadata or data is not in curl request
     if not data or 'metadata' not in data.keys() or 'data' not in data.keys():
@@ -450,8 +451,6 @@ def search_packages_by_regex(regex_pattern):
 
 if __name__ == '__main__':
     # import os
-    decode_service_account()
-    '''Initialize Firebase Admin SDK with your project's service account credentials'''
-    cred = credentials.Certificate("service_account.json")
+
     port = int(os.environ.get('PORT', PORT_NUMBER))
     app.run(host='0.0.0.0', port=port, debug=True)
