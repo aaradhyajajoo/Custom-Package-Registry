@@ -358,9 +358,9 @@ def metric_rate(id):
     license_score = 0
     ramp_up = 0
 
-    if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None):
-        # Calculate net score
-        calcFinalScore(bf, lc, cr, ru, rm, owner_url)
+    # if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None):
+    #     # Calculate net score
+    #     calcFinalScore(bf, lc, cr, ru, rm, owner_url)
 
     net_score = compiledqueries.calcFinalScore(bus_factor,license_score,correctness, ramp_up, responsiveness,owner)
     # net_score = 0
