@@ -91,7 +91,7 @@ test('get ID, ID exists', () => {
 });
 
 // UNSURE ABOUT THIS ONE, OUTPUT OF bash test7.sh LOOKS WEIRD
-test('get ID, ID exists', () => {
+test('get ID, ID does not exists', () => {
 
   const curlCommand1 = 'bash test1.sh'
   const curlCommand2 = 'bash test8.sh'
@@ -104,3 +104,8 @@ test('get ID, ID exists', () => {
 });
 
 // SKIPPING PUT... DO NOT REALLY UNDERSTAND IT FOR NOW
+// same for POST
+// unsure why rate isnt working
+// put authenticate im putting on hold. Curl says '"message": "This system does not support authentication."'. If its supposed to do that implementing this is easy
+// package by name isnt working... dont think its a problem with curl command
+// most likely delete by name isnt working for same reason.
