@@ -199,7 +199,7 @@ def list_of_packages():
 # DELETE Reset Registry
 
 
-@app.route('/reset/', methods=['DELETE'])
+@app.route('/reset', methods=['DELETE'])
 def reset_registry():
     # Checks Authorization
     authorization = None
@@ -208,7 +208,7 @@ def reset_registry():
         return err.no_permission()
     ref = db.reference('packages')
     ref.delete()
-
+    return json.dumps('Registry is reset.'),200
 
 # GET, PUT, DELETE - Package with given ID in endpoint
 
