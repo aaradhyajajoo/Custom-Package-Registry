@@ -22,6 +22,16 @@ test('reset', () => {
   expect(response).toEqual("Registry is reset.");
 });
 
+test('reset no permission', () => {
+
+  const curlCommand = 'bash test9.sh'
+  const expectedJson = {"message": "You do not have permission to reset the registry."}
+  const process = spawnSync(curlCommand, { shell: true });
+  const output = process.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
+
 test('reset, no auth', () => {
 
   const curlCommand = 'bash test3.sh'
@@ -92,3 +102,5 @@ test('get ID, ID exists', () => {
   const response = JSON.parse(output || '');
   expect(response).toEqual(expectedJson);
 });
+
+// SKIPPING PUT... DO NOT REALLY UNDERSTAND IT FOR NOW
