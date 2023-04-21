@@ -41,8 +41,17 @@ test('regex found', () => {
   const process1 = spawnSync(curlCommand1, { shell: true });
   const process2 = spawnSync(curlCommand2, { shell: true });
   const output = process2.stdout?.toString();
-  console.log('curl = ', output)
   const response = JSON.parse(output || '');
-  console.log(response)
+  expect(response).toEqual(expectedJson);
+});
+
+test('regex not found', () => {
+  const curlCommand1 = 'bash test1.sh'
+  const curlCommand2 = 'bash test5.sh'
+  const expectedJson = { "message": "Package does not exist." };
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
   expect(response).toEqual(expectedJson);
 });
