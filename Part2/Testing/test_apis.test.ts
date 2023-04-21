@@ -3,7 +3,7 @@ import { expect, test } from '@jest/globals';
 
 test('package API', () => {
 
-  const curlCommand = `curl -X 'POST' 'http://127.0.0.1:5000/package/' -H 'Content-Type: application/json' -H 'accept: application/json' -H 'X-Authorization: kkm' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"Content": "Check","JSProgram": "if (process.argv.length === 7) {\\nconsole.log(\\'Success\\')\\nprocess.exit(0)\\n} else {\\nconsole.log(\\'Failed\\')\\nprocess.exit(1)\\n}\\n"}}'`;
+  const curlCommand = 'bash test1.sh'
   const expectedJson = { message: 'Success.' };
   const process = spawnSync(curlCommand, { shell: true });
   const output = process.stdout?.toString();
