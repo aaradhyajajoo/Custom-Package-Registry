@@ -410,7 +410,7 @@ def authenticate():
     return err.no_authentication()
 
 
-@app.route('/package/byRegEx/', methods=['POST'])
+@app.route('/package/byRegEx', methods=['POST'])
 def package_by_regex():
     # format the regex to make it compatible with code.
     # regex_pattern = regex.strip()
@@ -447,6 +447,9 @@ def search_packages_by_regex(regex_pattern):
 
     ref = db.reference('packages')
     all_packages = ref.get()
+
+    if all_packages is None:
+        return err.package_doesNot_exist()
 
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']

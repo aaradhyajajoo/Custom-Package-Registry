@@ -18,8 +18,6 @@ test('reset', () => {
   //const expectedJson = { message: 'Success.' };
   const process = spawnSync(curlCommand, { shell: true });
   const output = process.stdout?.toString();
-  console.log(output)
-  console.log('curl = ', curlCommand)
   const response = JSON.parse(output || '');
   expect(response).toEqual("Registry is reset.");
 });
@@ -31,6 +29,19 @@ test('reset, no auth', () => {
   const process = spawnSync(curlCommand, { shell: true });
   const output = process.stdout?.toString();
   //console.log('curl = ', curlCommand)
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
+
+test('regex found', () => {
+
+  const curlCommand1 = 'bash test1.sh'
+  const curlCommand2 = 'bash test4.sh'
+  const expectedJson = [ { Version: '1.0.0', Name: 'Underscore' } ];
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  console.log('curl = ', output)
   const response = JSON.parse(output || '');
   console.log(response)
   expect(response).toEqual(expectedJson);
