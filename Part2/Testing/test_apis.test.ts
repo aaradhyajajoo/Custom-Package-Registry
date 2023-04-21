@@ -55,3 +55,14 @@ test('regex not found', () => {
   const response = JSON.parse(output || '');
   expect(response).toEqual(expectedJson);
 });
+
+test('null regex', () => {
+  const curlCommand1 = 'bash test1.sh'
+  const curlCommand2 = 'bash test6.sh'
+  const expectedJson = {"message": "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid."}
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
