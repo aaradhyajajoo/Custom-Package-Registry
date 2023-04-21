@@ -79,3 +79,16 @@ test('get ID, ID exists', () => {
   const response = JSON.parse(output || '');
   expect(response).toEqual(expectedJson);
 });
+
+// UNSURE ABOUT THIS ONE, OUTPUT OF bash test7.sh LOOKS WEIRD
+test('get ID, ID exists', () => {
+
+  const curlCommand1 = 'bash test1.sh'
+  const curlCommand2 = 'bash test8.sh'
+  const expectedJson = {"message": "Package does not exist."};
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
