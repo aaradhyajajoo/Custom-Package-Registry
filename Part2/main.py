@@ -13,7 +13,7 @@ import Rate
 import base64
 import io
 import zipfile
-PORT_NUMBER = 8080
+PORT_NUMBER = 5000
 
 # Errors
 err = Err_Class()
