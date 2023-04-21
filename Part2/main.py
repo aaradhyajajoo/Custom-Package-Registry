@@ -3,6 +3,7 @@
 # Part 1 - Rating
 from ECE_461_new import compiledqueries
 from rate import *
+import base64
 
 
 # Error Class
@@ -36,7 +37,6 @@ firebase_admin.initialize_app(cred, options={
 '''Endpoints'''
 
 # Curl requests:
-# Correct: curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'Content-Type: application/json'  -H 'accept: application/json' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"Content": "Check","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
 # No metadata: curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
 # POST Package Create and POST Package Ingest
 @app.route('/package/', methods=['POST'])
@@ -50,24 +50,45 @@ def create():
 
     # Gets the JSON data from the request
     data = request.get_json()
+    # print(data.keys())
+    # Checking error 404 
+    if not data:
+        if 'URL' not in data.keys() and 'Content' not in data.keys():
+            return err.missing_fields()
+        
+    # url = "https://github.com/jashkenas/underscore"
+    if 'URL' in data.keys():
+        url = data['URL']
+        owner, repo, ty = extract_repo_info(url)
 
-    # Checking error 404 - metadata or data is not in curl request
-    if not data or 'metadata' not in data.keys() or 'data' not in data.keys():
-        return err.missing_fields()
+    elif 'Content' in data.keys():
+        content = data['Content']
+        # owner, repo, ty = "NEED TO GET OWNER AND REPO"
 
-    metadata = data['metadata']
-    ID = metadata['ID']
-    version = metadata['Version']
-    name = metadata['Name']
-    data_field = data['data']
+    
+    file_path = "package.json"
+    
+    # Construct the API URL for the package.json file
+    if ty == 'github':
+        api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
+        package_json = get_package_json(api_url,'github')
+        if not package_json:
+            err.malformed_req()
+        name = package_json['name']
+        version = package_json['version']
+        ID = package_json['name']
 
-    # Checking error 404
-    if not ID:
-        return err.malformed_req()
+    elif ty == 'npm':
+        package_json = get_package_json(url, 'npm')
+        if not package_json:
+            err.malformed_req()
+        name = package_json['name']
+        version = package_json['version']
+        ID = package_json['name']
 
-    # Checking error 404
-    if "Content" in data_field.keys() and "URL" in data_field.keys():
-        return err.missing_fields()
+
+    metadata = {'Name':name, 'Version':version, 'ID': ID}
+    data_field = data
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
     # Need to check error 424

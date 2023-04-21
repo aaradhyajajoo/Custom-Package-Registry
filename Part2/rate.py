@@ -7,7 +7,7 @@ import requests
 import binascii
 import base64
 import io
-
+import json
 
 def get_decoded_content(content):
     # Get decoded file contents
@@ -100,15 +100,15 @@ def extract_repo_info(url):
         repo_url = response.json()['repository']['url']
         repo_url = repo_url.split('//')[1].split('@')[-1].split(':')[0].replace('.git', '')
         owner, repo_name = repo_url.split('/')
-        return owner, repo_name
+        return owner, repo_name, 'npm'
     # Check if URL is a GitHub repository URL
     github_match = re.match(r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
     if github_match:
         owner = github_match.group(1)
         repo_name = github_match.group(2)
-        return owner, repo_name
+        return owner, repo_name, 'github'
     # URL is not a valid npm package URL or GitHub repository URL
-    return None, None
+    return None, None, None
 
 
 def calculate_review_fraction(owner, repo):
@@ -139,3 +139,27 @@ def calculate_review_fraction(owner, repo):
 
 
 
+def get_package_json(package_url, ty):
+
+    if ty == 'npm':
+        package_name = package_url.split("/")[-1]
+        # Construct package metadata API URL
+        metadata_url = f"https://registry.npmjs.org/{package_name}"
+        response = requests.get(metadata_url)
+        # Get the latest version of the package
+        version = json.loads(response.text)["dist-tags"]["latest"]
+        # Construct package.json file URL
+        package_json_url = f"https://cdn.jsdelivr.net/npm/{package_name}@{version}/package.json"
+        # Send GET request to package.json file URL
+        response = requests.get(package_json_url)
+        # Return the package.json file content as a string
+        return response.text
+
+    elif ty == 'github':
+        response = requests.get(package_url)
+        response_json = response.json()
+        file_contents = response_json['content']
+        decoded_contents = base64.b64decode(file_contents).decode('utf-8')
+        package_json = json.loads(decoded_contents)
+        return package_json
+    return None
