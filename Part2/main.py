@@ -1,45 +1,47 @@
 '''Import Statements'''
-# Flask
+
+# Part 1 - Rating
 from ECE_461_new import compiledqueries
+from rate import *
+import base64
+
+
+
+# Error Class
 from errors import Err_Class
+
+# Firebase Connection
 from firebase_admin import db, credentials
 import firebase_admin
 from flask import Flask, request, jsonify
 import json
 import os
 from firestore import decode_service_account
+
+# Regex Endpoint
 import re
-import Rate
-import base64
-import io
-import zipfile
-PORT_NUMBER = 4000
 
-# Errors
-err = Err_Class()
+# Package Endpoint
 
-app = Flask(__name__)  # Initializing Flask app
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
+PORT_NUMBER = 5000
 
+'''Inits'''
+err = Err_Class() # Errors
+app = Flask(__name__)  # Initializing Flask app
 decode_service_account()
-'''Initialize Firebase Admin SDK with your project's service account credentials'''
 cred = credentials.Certificate("service_account.json")
 firebase_admin.initialize_app(cred, options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
-# Firestore
+
 
 '''Endpoints'''
 
-# Curl requests:
-# Correct: curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'Content-Type: application/json'  -H 'accept: application/json' -H 'X-Authorization: kkm' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"Content": "Check","JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}}'
-# No metadata: curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
-
+# curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
 # POST Package Create and POST Package Ingest
-
-
-@app.route('/package/', methods=['POST'])
+@app.route('/package', methods=['POST'])
 def create():
 
     # Checks Authorization
@@ -50,23 +52,70 @@ def create():
 
     # Gets the JSON data from the request
     data = request.get_json()
+    # print(data.keys())
 
-    # Checking error 404 - metadata or data is not in curl request
-    if not data or 'metadata' not in data.keys() or 'data' not in data.keys():
-        return err.missing_fields()
+    # Checking error 404 
+    if not data:
+        if 'URL' not in data.keys() and 'Content' not in data.keys():
+            return err.missing_fields()
+        
+    # URL examples
+    # url = "https://github.com/jashkenas/underscore"
+    # url = "https://www.npmjs.com/package/browserify"
+    if 'URL' in data.keys():
+        url = data['URL']
+        if 'npm' in url:
+            package_json = get_package_json(url, 'npm')
+            print(package_json)
+            ty = 'npm'
+        elif 'github' in url:
+            owner, repo, ty = extract_repo_info(url)
+        else:
+            return err.malformed_req()
 
-    metadata = data['metadata']
-    ID = metadata['ID']
+    elif 'Content' in data.keys():
+        print('Content reading')
+        content = data['Content']
+        url = get_decoded_content(content)
+        print(f'URL : {url}')
+        if 'npm' in url:
+            package_json = get_package_json(url, 'npm')
+            print(f'Package json: {package_json}')
+            ty = 'npm'
+        elif 'github' in url:
+            owner, repo, ty = extract_repo_info(url)
+            print(f'In main: {owner},{repo}')
+        else:
+            return err.missing_fields()
 
-    data_field = data['data']
+    
+    file_path = "package.json"
+    
+    # Construct the API URL for the package.json file
+    if ty == 'github':
+        api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
+        print(f'API URL: {api_url}')
+        package_json = get_package_json(api_url,'github')
+        print(f'Package json: {package_json}')
+        if not package_json:
+            return err.malformed_req()
+        if 'name' not in package_json.keys() or 'version' not in package_json.keys():
+            return err.missing_fields()
 
-    # Checking error 404
-    if not ID:
-        return err.malformed_req()
+        name = package_json['name']
+        version = package_json['version']
+        ID = f"{name}_{version}"
 
-    # Checking error 404
-    if "Content" in data_field.keys() and "URL" in data_field.keys():
-        return err.missing_fields()
+    elif ty == 'npm':
+        if not package_json:
+            err.malformed_req()
+        name = package_json['name']
+        version = package_json['version']
+        ID = f"{name}_{version}"
+
+
+    metadata = {'Name':name, 'Version':version, 'ID': ID}
+    data_field = data
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
     # Need to check error 424
@@ -88,15 +137,19 @@ def create():
         ref.push(package)  # Upload data to package
     else:  # If some packages already exist in the DB
         unique_id_list = []
+        unique_version_list = []
+        unique_name_list = []
         firebaseIDs_list = []
 
         # Extracts the IDs of the metadata in the DB
         for ids in json_store.keys():
             firebaseIDs_list.append(ids)
             unique_id_list.append(json_store[ids]['metadata']['ID'])
+            unique_version_list.append(json_store[ids]['metadata']['Version'])
+            unique_name_list.append(json_store[ids]['metadata']['Name'])
 
-        print(f'Unique id list = {unique_id_list}')
-        if ID in unique_id_list:
+        # print(f'Unique id list = {unique_id_list}')
+        if ID in unique_id_list and version not in unique_version_list and name not in unique_name_list:
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
             firebaseID = firebaseIDs_list[i]  # Gets firebase ID
@@ -114,13 +167,16 @@ def create():
                         }
                     }
                     ref.update(update_data)  # Updates DB
-                    return json.dumps(metadata)
+                    package = ref.get('packages/' + firebaseID)
+                    return json.dumps(package),201
                 else:
                     return err.package_exists()
-        else:
+        elif ID not in unique_id_list:
             ref.push(package)
+        else:
+            return err.package_exists()
 
-    return err.success()
+    return json.dumps(package),201
 
 # Curl requests: curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
 # eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' \
@@ -129,7 +185,7 @@ def create():
 # POST Get Packages
 
 
-@app.route('/packages/', methods=['POST'])
+@app.route('/packages', methods=['POST'])
 def list_of_packages():
     # Checks Authorization
     authorization = None
@@ -174,7 +230,7 @@ def list_of_packages():
 
             uniq_pack_list = [dict(t)
                               for t in {tuple(d.items()) for d in pack_list}]
-
+    
     save = []
     j = 0
     for i in range(offset):
@@ -185,19 +241,15 @@ def list_of_packages():
                 save.append(x[j])
                 j += 1
 
-    # print(save)
+    if len(save) == 0:
+        return err.package_doesNot_exist()
 
     return json.dumps(save), 200
 
-    # if check_error:
-    #     return json.dumps(uniq_pack_list), 500
-    # else:
-    #     return json.dumps(uniq_pack_list), 200
 # Test Command: curl --location --request DELETE 'http://127.0.0.1:8080/reset' --header /
 # 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI /
 # 6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 # DELETE Reset Registry
-
 
 @app.route('/reset', methods=['DELETE'])
 def reset_registry():
@@ -241,7 +293,6 @@ def PackageRetrieve(id):
 
 
 # Correct: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"URL": "string","JSProgram": "string"}}'
-# Content and URL both set: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "string","Version": "1.2.3","ID": "string"},"data": {"Content": "string","URL": "string","JSProgram": "string"}}'
 def PackageUpdate(id):
     ref = db.reference('packages')
     all_packages = ref.get()
@@ -313,11 +364,13 @@ def PackageDelete(id):
     return json.dumps({'message': 'Package is deleted.'}), 200
 
 
+# Correct: curl -X 'GET' 'http://127.0.0.1:8080/package/underscore/rate' -H 'accept: application/json' -H 'X-Authorization: f'
 @app.route('/package/<id>/rate/', methods=['GET'])
 def metric_rate(id):
     # Checks Authorization
-    # authorization = None
-    # authorization = request.headers.get("X-Authorization")
+    authorization = None
+    authorization = request.headers.get("X-Authorization")
+    # print(f'req = {request}')
     # if authorization is None:
     #     return err.auth_failure()
 
@@ -326,77 +379,75 @@ def metric_rate(id):
 
     ref = db.reference('packages')
     all_packages = ref.get()
+    if not all_packages:
+        return err.malformed_req()
+
+    print('Checking package_data')
     package_data = None
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
+        if 'ID' not in metadata.keys():
+            err.missing_fields() # Error 400
         if id == metadata['ID']:
             package_data = p_data
-
             check_package = True
             break
-
-    # Get package content
-    data = package_data['data']
-    content = data['Content']
-    content += '=' * (-len(content) % 4)
-    #encodings_to_try = ['utf-8', 'iso-8859-1', 'cp1252']
-    decoded_content = base64.b64decode(content).decode('iso-8859-1')
-    #decoded_content_bytes = decoded_content.encode('utf-8')
-
-
-    #with open("package.zip", "wb") as f:
-     #f.write(decoded_content_bytes)
-    #with zipfile.ZipFile("package.zip", "r") as zip_ref:
-     #zip_ref.extractall("/Part2")
-
-
-
-    # Checking error 400
-    if not check_package:
-        return err.package_doesNot_exist()
+    
 
     # Checking error 404
-    if package_data is None:
+    if not check_package or not package_data or 'data' not in package_data.keys():
         return err.package_doesNot_exist()
 
-    # Get package URL from package data
-   # data = package_data['data']
-    #url = data['URL']
-    #if url is None:
-     #   return err.missing_fields()
+    data = package_data['data']
 
+    # Get decoded package content
+    if 'Content' in data.keys() and 'URL' not in data.keys():
+        print('Reading content')
+        content = data['Content']
+        print('Content')
+        if content is None:
+            return err.missing_fields()
+        url = get_decoded_content(content)
 
-    # Get owner and name from GitHub URL
-    #owner, name = Rate.extract_repo_info(url)
+    elif 'Content' not in data.keys() and 'URL' in data.keys():
+        # Get package URL from package data
+        # print('reading url')
+        url = data['URL']
+        if url is None:
+          return err.missing_fields()
 
-    # Calculate metrics
-   # code_review = Rate.calculate_review_fraction(owner, name)
-    #dependency = Rate.calculate_dependency_metric(id)
-    #bus_factor = compiledqueries.getBusFactorScore(owner, name)
-    #responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
-   # correctness = compiledqueries.getCorrectnessScore(owner, name)
+    
+    # # Get owner and name from GitHub URL
+    owner, name, ty = extract_repo_info(url)
+    print(f' In main: {owner,name}')
+    if owner is None or name is None or ty is None:
+        return err.malformed_req() # Check
+
+    # # Calculate metrics
+    code_review = calculate_review_fraction(owner, name)
+    dependency = calculate_dependency_metric(id)
+    bus_factor = compiledqueries.getBusFactorScore(owner, name)
+    responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+    correctness = compiledqueries.getCorrectnessScore(owner, name)
     # license_score = compiledqueries.getLicenseScore(name, owner,'license.txt')
     # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
     license_score = 0
     ramp_up = 0
 
-    # if (code_review == None) or (dependency== None) or (bus_factor == None) or  (responsiveness ==None):
-    #     # Calculate net score
-    #     calcFinalScore(bf, lc, cr, ru, rm, owner_url)
-
-  #  net_score = compiledqueries.calcFinalScore(
-      #  bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
-    # net_score = 0
-    # Return result
-    metric = {#'BusFactor': bus_factor,
-              #'Correctness': correctness,
+    net_score = compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
+    # # net_score = 0
+    # # Return 
+    metric = {}
+    metric = {'BusFactor': bus_factor,
+              'Correctness': correctness,
               'RampUp': ramp_up,
-              #'ResponsiveMaintainer': responsiveness,
+              'ResponsiveMaintainer': responsiveness,
               'LicenseScore': license_score,
-              #'GoodPinningPractice': dependency,
-              #'PullRequest': code_review,
-              #'NetScore': net_score
+              'GoodPinningPractice': dependency,
+              'PullRequest': code_review,
+              'NetScore': net_score
               }
+
     return json.dumps(metric), 200
 
 
@@ -464,6 +515,7 @@ def search_packages_by_regex(regex_pattern):
             count += 1
 
     return matched_packages
+
 
 
 if __name__ == '__main__':
