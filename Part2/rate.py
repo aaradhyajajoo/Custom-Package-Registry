@@ -43,56 +43,16 @@ def get_decoded_content(content):
 
     return 'No URL found' # For now
 
-def calculate_dependency_metric(package_id):
-    # Retrieve package metadata
-    response = requests.get(f'https://pypi.org/pypi/{package_id}/json/')
-    if response.status_code != 200:
+def calculate_dependency_metric(package_json, version_spec):
+    if not package_json:
         return None
-    metadata = response.json()
+    dependencies = package_json['dependencies']
+    num_pinned_dependencies = sum(1 for version in dependencies.values() if version.startswith(version_spec))
+    total_dependencies = len(dependencies)
 
-    # Extract package name and version requirements
-    name = metadata['info']['name']
-    if 'requires_dist' not in metadata['info']:
-        return None
-    requirements = metadata['info']['requires_dist']
-
-    #requirements = metadata['info']['requires_dist']
-
-    # Download and extract package files
-    download_url = metadata['urls'][0]['url']
-    with tempfile.TemporaryDirectory() as tmpdir:
-        package_zip_file = os.path.join(tmpdir, f'{name}.zip')
-        with open(package_zip_file, 'wb') as f:
-            response = requests.get(download_url)
-            f.write(response.content)
-        with zipfile.ZipFile(package_zip_file, 'r') as zip_ref:
-            zip_ref.extractall(tmpdir)
-
-        # Calculate dependency metric
-        requirements_file = os.path.join(tmpdir, name, 'requirements.txt')
-        if not os.path.exists(requirements_file):
-            return None
-        with open(requirements_file, 'r') as f:
-            lines = f.readlines()
-            if len(lines) == 0:
-                return 1.0
-            num_deps = len(lines)
-            num_pinned_deps = 0
-            for line in lines:
-                match = re.search(r'==([0-9]+\.[0-9]+)', line)
-                if match:
-                    version = match.group(1)
-                    if version.count('.') == 1:
-                        num_pinned_deps += 1
-            if num_deps == 0:
-                return 1.0
-            elif num_pinned_deps == 0:
-                return 0.0
-            elif num_pinned_deps == 1:
-                return 0.5
-            else:
-                return float(num_pinned_deps) / num_deps
-
+    fraction = num_pinned_dependencies / total_dependencies if total_dependencies > 0 else 1.0
+    return fraction
+    
 def extract_repo_info(url):
     # Check if URL is an npm package URL
     npm_match = re.match(r'^https?://(?:www\.)?npmjs\.com/package/([^/]+)/?$', url)
@@ -124,21 +84,29 @@ def calculate_review_fraction(owner, repo):
 
     # Check for errors
     if response.status_code != 200:
-        return 0.0
+        return None
+
 
     # Calculate review fraction
-    pull_requests = response.json()
+    pr = response.json()[0]
+    # print(pr)
+    # print(type(pull_requests))
+    
+    # if 'state' in pr.keys() or 'merged_at' in pr.keys():
+    #     print('Found')
     reviewed_code = 0
     total_code = 0
-    for pr in pull_requests:
-        if pr['state'] == 'closed' and pr['merged_at'] is not None:
-            pr_response = requests.get(pr['url'], headers=headers)
-            pr_data = pr_response.json()
-            total_code += pr_data['additions'] + pr_data['deletions']
-            if pr_data['review_comments'] > 0 or pr_data['comments'] > 0:
-                reviewed_code += pr_data['additions'] + pr_data['deletions']
+
+    if pr['state'] == 'closed' and pr['merged_at'] is not None:
+        # print('here')
+        pr_response = requests.get(pr['url'], headers=headers)
+        pr_data = pr_response.json()
+        print(pr_data['addditions'], pr_datadata['deletions'], pr['review_comments'],pr['comments'])
+        total_code += pr_data['additions'] + pr_data['deletions']
+        if pr_data['review_comments'] > 0 or pr_data['comments'] > 0:
+            reviewed_code += pr_data['additions'] + pr_data['deletions']
     if total_code == 0:
-        return 0.0
+        return 0
     return reviewed_code / total_code
 
 
