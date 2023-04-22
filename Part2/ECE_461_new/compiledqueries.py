@@ -49,9 +49,10 @@ def getBusFactorScore(owner, name):
     # req=requests.get(url='https://api.github.com/graphql', auth=(username,token)) headers=header
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
-    print(f'In compiledqueries:{owner}{name}')
+    
+    if req is None:
+        return None
     result = req.json()
-    print(f'Res = {result}')
     if result['data']['repository'] == None:
         return 0
     numContributors = result['data']['repository']['mentionableUsers']['totalCount']
@@ -79,6 +80,8 @@ def getCorrectnessScore(owner, name):
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
     result = req.json()
+    if not result:
+        return None
     if result['data']['repository'] == None:
         return 0
     number_of_stars = result['data']['repository']['stargazerCount']
@@ -120,6 +123,8 @@ def getResponsiveMaintainersScore(owner, name):
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
     result = req.json()
+    if not result:
+        return None
     if result['data']['repository'] == None or result['data']['repository']['ref'] == None:
         return 0
     numCommits = result['data']['repository']['ref']['target']['history']['totalCount']

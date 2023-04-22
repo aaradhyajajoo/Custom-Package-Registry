@@ -8,7 +8,7 @@ class Err_Class(object):
         return self.set_error(404, "Malformed request.")
 
     def unexpected_error(self):
-        return {"code": -1, "message": "An error occurred while retrieving package"}, 500
+        return self.set_error(500, "The package rating system choked on at least one of the metrics.")
 
     def package_exists(self):
         return self.set_error(409, "Package exists already.")
