@@ -80,7 +80,7 @@ import json
 
 ''' /rate endpoint '''
 
-url = 'http://127.0.0.1:5000/package/nodist_0.9.1/rate'
+url = 'http://127.0.0.1:8080/package/nodist_0.9.1/rate'
 headers = {
     'accept': 'application/json',
     'X-Authorization': 'cdc'
