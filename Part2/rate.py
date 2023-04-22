@@ -47,13 +47,13 @@ def calculate_dependency_metric(package_id):
     # Retrieve package metadata
     response = requests.get(f'https://pypi.org/pypi/{package_id}/json/')
     if response.status_code != 200:
-        return 1.0
+        return None
     metadata = response.json()
 
     # Extract package name and version requirements
     name = metadata['info']['name']
     if 'requires_dist' not in metadata['info']:
-        return 1.0
+        return None
     requirements = metadata['info']['requires_dist']
 
     #requirements = metadata['info']['requires_dist']
@@ -71,7 +71,7 @@ def calculate_dependency_metric(package_id):
         # Calculate dependency metric
         requirements_file = os.path.join(tmpdir, name, 'requirements.txt')
         if not os.path.exists(requirements_file):
-            return 1.0
+            return None
         with open(requirements_file, 'r') as f:
             lines = f.readlines()
             if len(lines) == 0:

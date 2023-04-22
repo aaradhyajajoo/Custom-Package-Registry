@@ -421,14 +421,24 @@ def metric_rate(id):
     owner, name, ty = extract_repo_info(url)
     print(f' In main: {owner,name}')
     if owner is None or name is None or ty is None:
-        return err.malformed_req() # Check
+        return err.unexpected_error() # Check
 
     # # Calculate metrics
     code_review = calculate_review_fraction(owner, name)
+    if code_review == 0.0:
+        return err.unexpected_error()
     dependency = calculate_dependency_metric(id)
+    if dependency is None:
+        return err.unexpected_error()
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
+    if bus_factor is None:
+        return err.unexpected_error()
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+    if not responsiveness:
+        return err.unexpected_error()
     correctness = compiledqueries.getCorrectnessScore(owner, name)
+    if not correctness:
+        return err.unexpected_error()
     # license_score = compiledqueries.getLicenseScore(name, owner,'license.txt')
     # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
     license_score = 0
