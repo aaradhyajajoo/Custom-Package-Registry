@@ -57,6 +57,7 @@ def create():
     # Checking error 404 
     if not data:
         if 'URL' not in data.keys() and 'Content' not in data.keys():
+            print('here')
             return err.missing_fields()
         
     # URL examples
