@@ -109,6 +109,7 @@ def extract_repo_info(url):
         print('GitHub match')
         owner = github_match.group(1)
         repo_name = github_match.group(2)
+        print(f'Owner. Repo name = {owner},{repo_name}')
         return owner, repo_name, 'github'
     # URL is not a valid npm package URL or GitHub repository URL
     return None, None, None
@@ -162,8 +163,8 @@ def get_package_json(package_url, ty):
     elif ty == 'github':
         response = requests.get(package_url)
         package_json = response.json()
-        if package_json and 'content' not in response:
-            err.missing_fields()
+        if package_json and 'content' not in package_json.keys():
+            return None
         file_contents = package_json['content']
         decoded_contents = base64.b64decode(file_contents).decode('utf-8')
         return_json = json.loads(decoded_contents)

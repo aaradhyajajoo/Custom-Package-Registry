@@ -25,7 +25,7 @@ import re
 
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8080
+PORT_NUMBER = 5000
 
 '''Inits'''
 err = Err_Class() # Errors
@@ -77,12 +77,14 @@ def create():
         print('Content reading')
         content = data['Content']
         url = get_decoded_content(content)
+        print(f'URL : {url}')
         if 'npm' in url:
             package_json = get_package_json(url, 'npm')
-            print(package_json)
+            print(f'Package json: {package_json}')
             ty = 'npm'
         elif 'github' in url:
             owner, repo, ty = extract_repo_info(url)
+            print(f'In main: {owner},{repo}')
         else:
             return err.missing_fields()
 
@@ -92,16 +94,17 @@ def create():
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
+        print(f'API URL: {api_url}')
         package_json = get_package_json(api_url,'github')
-        print(package_json)
+        print(f'Package json: {package_json}')
         if not package_json:
-            err.malformed_req()
+            return err.malformed_req()
         if 'name' not in package_json.keys() or 'version' not in package_json.keys():
             return err.missing_fields()
 
         name = package_json['name']
         version = package_json['version']
-        ID = package_json['name']
+        ID = f"{name}_{version}"
 
     elif ty == 'npm':
         if not package_json:
@@ -168,8 +171,10 @@ def create():
                     return json.dumps(package),201
                 else:
                     return err.package_exists()
-        else:
+        elif ID not in unique_id_list:
             ref.push(package)
+        else:
+            return err.package_exists()
 
     return json.dumps(package),201
 
@@ -374,6 +379,10 @@ def metric_rate(id):
 
     ref = db.reference('packages')
     all_packages = ref.get()
+    if not all_packages:
+        return err.malformed_req()
+
+    print('Checking package_data')
     package_data = None
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
@@ -393,8 +402,9 @@ def metric_rate(id):
 
     # Get decoded package content
     if 'Content' in data.keys() and 'URL' not in data.keys():
-        # print('reading content')
+        print('Reading content')
         content = data['Content']
+        print('Content')
         if content is None:
             return err.missing_fields()
         url = get_decoded_content(content)
@@ -409,7 +419,7 @@ def metric_rate(id):
     
     # # Get owner and name from GitHub URL
     owner, name, ty = extract_repo_info(url)
-    # print(owner,name)
+    print(f' In main: {owner,name}')
     if owner is None or name is None or ty is None:
         return err.malformed_req() # Check
 
