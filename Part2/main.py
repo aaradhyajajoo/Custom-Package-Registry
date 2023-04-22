@@ -392,7 +392,11 @@ def metric_rate(id):
             package_data = p_data
             check_package = True
             break
-    
+
+    p_name = p_data['metadata']['Name']
+    p_version = p_data['metadata']['Version']
+    if not p_name or not p_version:
+        return err.missing_fields()
 
     # Checking error 404
     if not check_package or not package_data or 'data' not in package_data.keys():
@@ -414,34 +418,62 @@ def metric_rate(id):
         # print('reading url')
         url = data['URL']
         if url is None:
-          return err.missing_fields()
+            return err.missing_fields()
+
+    if 'npm' in url:
+            package_json = get_package_json(url, 'npm')
+            print(f'Package json: {package_json}')
+            ty = 'npm'
+    elif 'github' in url:
+            owner, repo, ty = extract_repo_info(url)
+            # print(f'In main: {owner},{repo}')
+    else:
+            return err.missing_fields()
 
     
-    # # Get owner and name from GitHub URL
+    file_path = "package.json"
+    
+    # Construct the API URL for the package.json file
+    if ty == 'github':
+        api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
+        print(f'API URL: {api_url}')
+        package_json = get_package_json(api_url,'github')
+        # print(f'Package json: {package_json}')
+        if not package_json:
+            return err.malformed_req()
+
+    elif ty == 'npm':
+        if not package_json:
+            err.malformed_req()
+
     owner, name, ty = extract_repo_info(url)
-    print(f' In main: {owner,name}')
     if owner is None or name is None or ty is None:
         return err.unexpected_error() # Check
 
     # # Calculate metrics
     code_review = calculate_review_fraction(owner, name)
-    if code_review == 0.0:
+    if code_review is  None:
+        print('code review')
         return err.unexpected_error()
-    dependency = calculate_dependency_metric(id)
+    dependency = calculate_dependency_metric(package_json, p_version)
     if dependency is None:
+        print('dependency')
         return err.unexpected_error()
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     if bus_factor is None:
+        print('bus factor')
         return err.unexpected_error()
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
     if not responsiveness:
+        print('responsiveness')
         return err.unexpected_error()
     correctness = compiledqueries.getCorrectnessScore(owner, name)
     if not correctness:
+        print('correctness')
         return err.unexpected_error()
-    # license_score = compiledqueries.getLicenseScore(name, owner,'license.txt')
+    license_score = compiledqueries.getLicenseScore(name, owner,'license.txt')
     # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
-    license_score = 0
+    # license_score = 0
     ramp_up = 0
 
     net_score = compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
