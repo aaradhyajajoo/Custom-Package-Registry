@@ -10,6 +10,7 @@ import io
 import json
 from url_handler import *
 
+
 def get_decoded_content(content):
     # Get decoded file contents
     try:
@@ -34,14 +35,17 @@ def get_decoded_content(content):
                 if "github" in str(line) or "npmjs" in str(line):
                     line_string = str(line, 'utf-8').strip()
                     segments = line_string.split('"')
-                    clean_url = [i for i in segments if "github" in i or "npmjs" in i][0].strip()
+                    clean_url = [
+                        i for i in segments if "github" in i or "npmjs" in i][0].strip()
                     if clean_url.endswith(".git"):
                         clean_url = clean_url[:-4]
                     repo_url = get_github_url(clean_url)
                     zipped_repo.close()
                     return repo_url
 
-    return 'No URL found' # For now
+    print("No URL found")
+    return 'No URL found'  # For now
+
 
 def calculate_dependency_metric(package_id):
     # Retrieve package metadata
@@ -93,18 +97,22 @@ def calculate_dependency_metric(package_id):
             else:
                 return float(num_pinned_deps) / num_deps
 
+
 def extract_repo_info(url):
     # Check if URL is an npm package URL
-    npm_match = re.match(r'^https?://(?:www\.)?npmjs\.com/package/([^/]+)/?$', url)
+    npm_match = re.match(
+        r'^https?://(?:www\.)?npmjs\.com/package/([^/]+)/?$', url)
     if npm_match:
         print('NPM Match')
         response = requests.get(url)
         repo_url = response.json()['repository']['url']
-        repo_url = repo_url.split('//')[1].split('@')[-1].split(':')[0].replace('.git', '')
+        repo_url = repo_url.split(
+            '//')[1].split('@')[-1].split(':')[0].replace('.git', '')
         owner, repo_name = repo_url.split('/')
         return owner, repo_name, 'npm'
     # Check if URL is a GitHub repository URL
-    github_match = re.match(r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
+    github_match = re.match(
+        r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
     if github_match:
         print('GitHub match')
         owner = github_match.group(1)
@@ -120,7 +128,6 @@ def calculate_review_fraction(owner, repo):
     api_url = f'https://api.github.com/repos/{owner}/{repo}/pulls'
     headers = {'Accept': 'application/vnd.github.v3+json'}
     response = requests.get(api_url, headers=headers)
-
 
     # Check for errors
     if response.status_code != 200:
@@ -140,7 +147,6 @@ def calculate_review_fraction(owner, repo):
     if total_code == 0:
         return 0.0
     return reviewed_code / total_code
-
 
 
 def get_package_json(package_url, ty):
