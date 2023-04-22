@@ -8,6 +8,7 @@ import binascii
 import base64
 import io
 import json
+from url_handler import *
 
 def get_decoded_content(content):
     # Get decoded file contents
@@ -36,7 +37,7 @@ def get_decoded_content(content):
                     clean_url = [i for i in segments if "github" in i or "npmjs" in i][0].strip()
                     if clean_url.endswith(".git"):
                         clean_url = clean_url[:-4]
-                    repo_url = url_handler.get_github_url(clean_url)
+                    repo_url = get_github_url(clean_url)
                     zipped_repo.close()
                     return repo_url
 
@@ -96,6 +97,7 @@ def extract_repo_info(url):
     # Check if URL is an npm package URL
     npm_match = re.match(r'^https?://(?:www\.)?npmjs\.com/package/([^/]+)/?$', url)
     if npm_match:
+        print('NPM Match')
         response = requests.get(url)
         repo_url = response.json()['repository']['url']
         repo_url = repo_url.split('//')[1].split('@')[-1].split(':')[0].replace('.git', '')
@@ -104,6 +106,7 @@ def extract_repo_info(url):
     # Check if URL is a GitHub repository URL
     github_match = re.match(r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
     if github_match:
+        print('GitHub match')
         owner = github_match.group(1)
         repo_name = github_match.group(2)
         return owner, repo_name, 'github'
@@ -152,14 +155,17 @@ def get_package_json(package_url, ty):
         package_json_url = f"https://cdn.jsdelivr.net/npm/{package_name}@{version}/package.json"
         # Send GET request to package.json file URL
         response = requests.get(package_json_url)
-        # Return the package.json file content as a string
-        return response.text
+        package_json = response.json()
+        return package_json
+        # return response.text
 
     elif ty == 'github':
         response = requests.get(package_url)
-        response_json = response.json()
-        file_contents = response_json['content']
+        package_json = response.json()
+        if package_json and 'content' not in response:
+            err.missing_fields()
+        file_contents = package_json['content']
         decoded_contents = base64.b64decode(file_contents).decode('utf-8')
-        package_json = json.loads(decoded_contents)
-        return package_json
+        return_json = json.loads(decoded_contents)
+        return return_json
     return None

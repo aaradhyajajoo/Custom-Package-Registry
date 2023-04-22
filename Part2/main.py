@@ -6,6 +6,7 @@ from rate import *
 import base64
 
 
+
 # Error Class
 from errors import Err_Class
 
@@ -20,9 +21,11 @@ from firestore import decode_service_account
 # Regex Endpoint
 import re
 
+# Package Endpoint
+
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 5000
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class() # Errors
@@ -36,10 +39,9 @@ firebase_admin.initialize_app(cred, options={
 
 '''Endpoints'''
 
-# Curl requests:
-# No metadata: curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
+# curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
 # POST Package Create and POST Package Ingest
-@app.route('/package/', methods=['POST'])
+@app.route('/package', methods=['POST'])
 def create():
 
     # Checks Authorization
@@ -51,19 +53,38 @@ def create():
     # Gets the JSON data from the request
     data = request.get_json()
     # print(data.keys())
+
     # Checking error 404 
     if not data:
         if 'URL' not in data.keys() and 'Content' not in data.keys():
             return err.missing_fields()
         
+    # URL examples
     # url = "https://github.com/jashkenas/underscore"
+    # url = "https://www.npmjs.com/package/browserify"
     if 'URL' in data.keys():
         url = data['URL']
-        owner, repo, ty = extract_repo_info(url)
+        if 'npm' in url:
+            package_json = get_package_json(url, 'npm')
+            print(package_json)
+            ty = 'npm'
+        elif 'github' in url:
+            owner, repo, ty = extract_repo_info(url)
+        else:
+            return err.malformed_req()
 
     elif 'Content' in data.keys():
+        print('Content reading')
         content = data['Content']
-        # owner, repo, ty = "NEED TO GET OWNER AND REPO"
+        url = get_decoded_content(content)
+        if 'npm' in url:
+            package_json = get_package_json(url, 'npm')
+            print(package_json)
+            ty = 'npm'
+        elif 'github' in url:
+            owner, repo, ty = extract_repo_info(url)
+        else:
+            return err.missing_fields()
 
     
     file_path = "package.json"
@@ -72,19 +93,22 @@ def create():
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
         package_json = get_package_json(api_url,'github')
+        print(package_json)
         if not package_json:
             err.malformed_req()
+        if 'name' not in package_json.keys() or 'version' not in package_json.keys():
+            return err.missing_fields()
+
         name = package_json['name']
         version = package_json['version']
         ID = package_json['name']
 
     elif ty == 'npm':
-        package_json = get_package_json(url, 'npm')
         if not package_json:
             err.malformed_req()
         name = package_json['name']
         version = package_json['version']
-        ID = package_json['name']
+        ID = f"{name}_{version}"
 
 
     metadata = {'Name':name, 'Version':version, 'ID': ID}
@@ -140,13 +164,14 @@ def create():
                         }
                     }
                     ref.update(update_data)  # Updates DB
-                    return json.dumps(metadata)
+                    package = ref.get('packages/' + firebaseID)
+                    return json.dumps(package),201
                 else:
                     return err.package_exists()
         else:
             ref.push(package)
 
-    return err.success()
+    return json.dumps(package),201
 
 # Curl requests: curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
 # eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' \
@@ -155,7 +180,7 @@ def create():
 # POST Get Packages
 
 
-@app.route('/packages/', methods=['POST'])
+@app.route('/packages', methods=['POST'])
 def list_of_packages():
     # Checks Authorization
     authorization = None
@@ -200,7 +225,7 @@ def list_of_packages():
 
             uniq_pack_list = [dict(t)
                               for t in {tuple(d.items()) for d in pack_list}]
-
+    
     save = []
     j = 0
     for i in range(offset):
@@ -211,19 +236,15 @@ def list_of_packages():
                 save.append(x[j])
                 j += 1
 
-    # print(save)
+    if len(save) == 0:
+        return err.package_doesNot_exist()
 
     return json.dumps(save), 200
 
-    # if check_error:
-    #     return json.dumps(uniq_pack_list), 500
-    # else:
-    #     return json.dumps(uniq_pack_list), 200
 # Test Command: curl --location --request DELETE 'http://127.0.0.1:8080/reset' --header /
 # 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI /
 # 6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 # DELETE Reset Registry
-
 
 @app.route('/reset/', methods=['DELETE'])
 def reset_registry():
@@ -267,7 +288,6 @@ def PackageRetrieve(id):
 
 
 # Correct: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"URL": "string","JSProgram": "string"}}'
-# Content and URL both set: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "string","Version": "1.2.3","ID": "string"},"data": {"Content": "string","URL": "string","JSProgram": "string"}}'
 def PackageUpdate(id):
     ref = db.reference('packages')
     all_packages = ref.get()
@@ -339,7 +359,6 @@ def PackageDelete(id):
     return json.dumps({'message': 'Package is deleted.'}), 200
 
 
-# Curl req:
 # Correct: curl -X 'GET' 'http://127.0.0.1:8080/package/underscore/rate' -H 'accept: application/json' -H 'X-Authorization: f'
 @app.route('/package/<id>/rate/', methods=['GET'])
 def metric_rate(id):
@@ -358,43 +377,40 @@ def metric_rate(id):
     package_data = None
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
+        if 'ID' not in metadata.keys():
+            err.missing_fields() # Error 400
         if id == metadata['ID']:
             package_data = p_data
             check_package = True
             break
-
-
-    # Checking error 400
-    if not check_package:
-        return err.package_doesNot_exist()
+    
 
     # Checking error 404
-    if package_data is None:
+    if not check_package or not package_data or 'data' not in package_data.keys():
         return err.package_doesNot_exist()
 
-    
-    # Get decoded package content
     data = package_data['data']
+
+    # Get decoded package content
     if 'Content' in data.keys() and 'URL' not in data.keys():
-        print('reading content')
+        # print('reading content')
         content = data['Content']
         if content is None:
             return err.missing_fields()
-        # print(content)
-        # content += '=' * (-len(content) % 4)
         url = get_decoded_content(content)
 
     elif 'Content' not in data.keys() and 'URL' in data.keys():
         # Get package URL from package data
-        print('reading url')
+        # print('reading url')
         url = data['URL']
         if url is None:
           return err.missing_fields()
 
     
     # # Get owner and name from GitHub URL
-    owner, name = extract_repo_info(url)
-    if owner or name is None:
+    owner, name, ty = extract_repo_info(url)
+    # print(owner,name)
+    if owner is None or name is None or ty is None:
         return err.malformed_req() # Check
 
     # # Calculate metrics
