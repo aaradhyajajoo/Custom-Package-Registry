@@ -25,7 +25,7 @@ import re
 
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 5000
+PORT_NUMBER = 50001
 
 '''Inits'''
 err = Err_Class() # Errors
