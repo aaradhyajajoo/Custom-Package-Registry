@@ -68,6 +68,13 @@
         </form>
     </div>
 
+    <div class="upload-container">
+        <form action="/upload_text" method="post" enctype="multipart/form-data">
+            <h1 for="url">Add a new URL:</h1>
+            <textarea id="url" name="url" rows="5" cols="50"></textarea><br><br>
+            <input type="submit" value="Upload">
+        </form>
+    </div>
     <script>
         document.getElementById('btn-browse').addEventListener('click', function () {
             document.getElementById('file-input').click();

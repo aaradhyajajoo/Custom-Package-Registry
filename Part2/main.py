@@ -566,6 +566,38 @@ def action():
     return res.text
 
 
+@app.route('/upload_text', methods=['POST'])
+def package_text():
+    url = 'http://127.0.0.1:5000/package'
+    headers = {
+        'accept': 'application/json',
+        'X-Authorization': 'j',
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'URL': str(request.form.get('url')),
+        'JSProgram': 'if (process.argv.length === 7) {\nconsole.log(\'Success\')\nprocess.exit(0)\n} else {\nconsole.log(\'Failed\')\nprocess.exit(1)\n}\n'
+    }
+
+    res = requests.post(url, headers=headers, json=data)
+    return res.text
+
+
+@app.route('/ui/packages', methods=['GET', 'POST'])
+def render_all_packages():
+    return render_template('ui_packages.html')
+    # print data gotten from render template
+
+
+@app.route('/ui/packages_render', methods=['GET', 'POST'])
+def render_all_packages_data():
+    # call the function list_of_packages to get all the packages
+    print(request.form.get('url'))
+
+    # create a dictionary to store the data
+    return 'hello'
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', PORT_NUMBER))
     app.run(host='0.0.0.0', port=port, debug=True)
