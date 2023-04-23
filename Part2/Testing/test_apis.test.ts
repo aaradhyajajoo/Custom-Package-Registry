@@ -95,9 +95,20 @@ test('reset no permission', () => {
 //   expect(response).toEqual(expectedJson);
 // });
 
-test('get ID, ID does not exists', () => {
+test('put auth', () => {
   const curlCommand = 'bash test10auth.sh'
   const expectedJson = {"message": "This system does not support authentication."};
+  const process = spawnSync(curlCommand, { shell: true });
+  const output = process.stdout?.toString();
+  const response = JSON.parse(output || '');
+  console.log(response);
+  console.log(expectedJson);
+  expect(response).toEqual(expectedJson);
+});
+
+test('package no auth', () => {
+  const curlCommand = 'bash test11package.sh'
+  const expectedJson = {"message": "Authentication failed."};
   const process = spawnSync(curlCommand, { shell: true });
   const output = process.stdout?.toString();
   const response = JSON.parse(output || '');
