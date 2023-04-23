@@ -2,23 +2,33 @@
 <html>
 
 <head>
-    <title>JSON Metadata Form</title>
+    <title>JSON Metadata for Package</title>
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label,
+        input {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>JSON Metadata Form</h1>
-    <form action="/ui/packages_render" method="post" enctype="multipart/form-data>">
-        <label for="metadataInput">JSON Metadata:</label><br>
-        <textarea id="metadataInput" name="url" rows="10" cols="50" required></textarea><br>
+    <h1>JSON Metadata for Package</h1>
+    <form action="/ui/packages_render" method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+
+        <label for="version">Version:</label>
+        <input type="text" id="version" name="version" required>
+        <br>
         <input type="submit" value="Submit">
     </form>
-
-    <script>
-        document.getElementById("jsonForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-            const metadataInput = document.getElementById("metadataInput").value;
-        });
-    </script>
 </body>
 
 </html>

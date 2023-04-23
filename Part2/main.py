@@ -24,7 +24,7 @@ import re
 import gzip
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 5000
+PORT_NUMBER = 8000
 
 '''Inits'''
 err = Err_Class()  # Errors
@@ -204,7 +204,6 @@ def list_of_packages():
         return err.missing_fields()
 
     # print(f'Package Queries = {package_queries}')
-    check_error = False
     pack_list = []  # List of packages to be returned
 
     ref = db.reference('packages')
@@ -219,7 +218,6 @@ def list_of_packages():
                 pack_list.append(package['metadata'])
         # Returning specific packages
         else:
-            length = len(pack_list)
             for package in all_packages.values():  # Checking all packages in the DB for each query
                 if package['metadata'] not in uniq_pack_list:
                     if query['Name'] == package['metadata']['Name'] and query['Version'] == package['metadata']['Version']:
@@ -586,18 +584,50 @@ def package_text():
 @app.route('/ui/packages', methods=['GET', 'POST'])
 def render_all_packages():
     return render_template('ui_packages.html')
-    # print data gotten from render template
 
 
 @app.route('/ui/packages_render', methods=['GET', 'POST'])
 def render_all_packages_data():
     # call the function list_of_packages to get all the packages
-    print(request.form.get('url'))
-
     # create a dictionary to store the data
-    return 'hello'
+    url = 'http://127.0.0.1:8080/packages'
+    headers = {
+        'accept': 'application/json',
+        'X-Authorization': 'j',
+        'Content-Type': 'application/json'
+    }
+    data = [{
+        "Version": str(request.form.get('version')),
+        "Name": str(request.form.get('name'))
+    }]
+
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code < 300:
+        data = {
+            'id': response.json()[0]["ID"],
+            'name': response.json()[0]["Name"],
+            'version': response.json()[0]["Version"]
+        }
+        return render_template('ui_packages_render.html', data=data)
+    else:
+        return response.text
+
+
+@app.route('/ui/reset/', methods=['GET', 'POST'])
+def reset_all():
+    return render_template('ui_reset.html')
+
+
+@app.route('/ui/reset_registry', methods=['GET', 'POST'])
+def reset_all_packages():
+    url = 'http://127.0.0.1:8000/reset/'
+    headers = {
+        'X-Authorization': 'j',
+    }
+    response = requests.delete(url, headers=headers)
+    return response.text
 
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', PORT_NUMBER))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='127.0.0.1', port=port, debug=True)
