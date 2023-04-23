@@ -89,7 +89,7 @@ def create():
         else:
             return err.missing_fields()
 
-    
+    print(f"_________{owner}, {repo}")
     file_path = "package.json"
     
     # Construct the API URL for the package.json file

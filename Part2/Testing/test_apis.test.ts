@@ -37,39 +37,39 @@ test('reset no permission', () => {
 });
 
 
-// test('regex found', () => {
+test('regex found', () => {
 
-//   const curlCommand1 = 'bash test1package.sh'
-//   const curlCommand2 = 'bash test4regex.sh'
-//   const expectedJson = [ { Version: '1.0.0', Name: 'Underscore' } ];
-//   const process1 = spawnSync(curlCommand1, { shell: true });
-//   const process2 = spawnSync(curlCommand2, { shell: true });
-//   const output = process2.stdout?.toString();
-//   const response = JSON.parse(output || '');
-//   expect(response).toEqual(expectedJson);
-// });
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test4regex.sh'
+  const expectedJson = [{"Version": "0.9.1", "Name": "nodist"}];
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
 
-// test('regex not found', () => {
-//   const curlCommand1 = 'bash test1package.sh'
-//   const curlCommand2 = 'bash test5regex.sh'
-//   const expectedJson = { "message": "Package does not exist." };
-//   const process1 = spawnSync(curlCommand1, { shell: true });
-//   const process2 = spawnSync(curlCommand2, { shell: true });
-//   const output = process2.stdout?.toString();
-//   const response = JSON.parse(output || '');
-//   expect(response).toEqual(expectedJson);
-// });
+test('regex not found', () => {
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test5regex.sh'
+  const expectedJson = { "message": "Package does not exist." };
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
 
-// test('null regex', () => {
-//   const curlCommand1 = 'bash test1package.sh'
-//   const curlCommand2 = 'bash test6regex.sh'
-//   const expectedJson = {"message": "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid."}
-//   const process1 = spawnSync(curlCommand1, { shell: true });
-//   const process2 = spawnSync(curlCommand2, { shell: true });
-//   const output = process2.stdout?.toString();
-//   const response = JSON.parse(output || '');
-//   expect(response).toEqual(expectedJson);
-// });
+test('null regex', () => {
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test6regex.sh'
+  const expectedJson = {"message": "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid."}
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
 
 // // UNSURE ABOUT THIS ONE, OUTPUT OF bash test7.sh LOOKS WEIRD
 // test('get ID, ID exists', () => {

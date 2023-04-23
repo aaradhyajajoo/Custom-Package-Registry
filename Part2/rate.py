@@ -129,6 +129,7 @@ def get_package_json(package_url, ty):
         # return response.text
 
     elif ty == 'github':
+        print(package_url)
         response = requests.get(package_url)
         package_json = response.json()
         if package_json and 'content' not in package_json.keys():

@@ -13,8 +13,8 @@ data = {
      'JSProgram': 'if (process.argv.length === 7) {\nconsole.log(\'Success\')\nprocess.exit(0)\n} else {\nconsole.log(\'Failed\')\nprocess.exit(1)\n}\n'
  }
 
-# response = requests.post(url, headers=headers, json=data)
-# print(f'/package endpoint response - {response.text}')
+response = requests.post(url, headers=headers, json=data)
+print(f'/package endpoint response - {response.text}')
 
 ''' /packages endpoint '''
 # url = 'http://127.0.0.1:8080/packages'
