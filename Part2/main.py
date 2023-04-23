@@ -25,7 +25,7 @@ import re
 
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 50001
+PORT_NUMBER = 50002
 
 '''Inits'''
 err = Err_Class() # Errors
@@ -491,6 +491,9 @@ def metric_rate(id):
               'NetScore': net_score
               }
 
+    print(f'___METRICS____: {metric}') #### DELETE THIS #####
+    with open("Testing/test14rate.json", "w") as outfile:
+        json.dump(metric, outfile)
     return json.dumps(metric), 200
 
 

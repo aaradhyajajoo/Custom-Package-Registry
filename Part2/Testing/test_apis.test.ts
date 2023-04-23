@@ -68,7 +68,6 @@ test('null regex', () => {
   const process2 = spawnSync(curlCommand2, { shell: true });
   const output = process2.stdout?.toString();
   const response = JSON.parse(output || '');
-  console.log(response);
   expect(response).toEqual(expectedJson);
 });
 
@@ -146,7 +145,19 @@ test('delete package id, no auth', () => {
   const process2 = spawnSync(curlCommand2, { shell: true });
   const output = process2.stdout?.toString();
   const response = JSON.parse(output || '');
-  console.log(response);
+  expect(response).toEqual(expectedJson);
+});
+
+test('rate', () => {
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test14rate.sh'
+  const expectedJson = {"BusFactor": 1, "Correctness": 1, "RampUp": 0, "ResponsiveMaintainer": 1, "LicenseScore": 1, "GoodPinningPractice": 0.0, "PullRequest": 0, "NetScore": 0.8};
+  
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
   expect(response).toEqual(expectedJson);
 });
 

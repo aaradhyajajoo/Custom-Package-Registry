@@ -1,5 +1,5 @@
 curl -X 'PUT' \
-  'http://127.0.0.1:50001/authenticate/' \
+  'http://127.0.0.1:50002/authenticate/' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
