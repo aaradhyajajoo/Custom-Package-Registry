@@ -348,7 +348,7 @@ def PackageDelete(id):
     id_exists = False
 
     # Gets firebaseID of the package (metadata in this case) that we need to update
-    # print(all_packages.items())
+  
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
         if not metadata:
@@ -472,13 +472,11 @@ def metric_rate(id):
         print('correctness')
         return err.unexpected_error()
     license_score = licenseScore(owner,name)
-    # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
-    # license_score = 0
+
     ramp_up = calculate_ramp_up_score(owner,name)
 
-    net_score = compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
-    # # net_score = 0
-    # # Return
+    net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner) ) + 0.2 * dependency + 0.1 *code_review
+
     metric = {}
     metric = {'BusFactor': bus_factor,
               'Correctness': correctness,
