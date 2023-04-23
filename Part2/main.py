@@ -54,12 +54,12 @@ def create():
     data = request.get_json()
     # print(data.keys())
 
-    # Checking error 404 
+    # Checking error 404
     if not data:
         if 'URL' not in data.keys() and 'Content' not in data.keys():
             print('here')
             return err.missing_fields()
-        
+
     # URL examples
     # url = "https://github.com/jashkenas/underscore"
     # url = "https://www.npmjs.com/package/browserify"
@@ -89,9 +89,9 @@ def create():
         else:
             return err.missing_fields()
 
-    print(f"_________{owner}, {repo}")
+
     file_path = "package.json"
-    
+
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
@@ -231,7 +231,7 @@ def list_of_packages():
 
             uniq_pack_list = [dict(t)
                               for t in {tuple(d.items()) for d in pack_list}]
-    
+
     save = []
     j = 0
     for i in range(offset):
@@ -431,9 +431,9 @@ def metric_rate(id):
     else:
             return err.missing_fields()
 
-    
+
     file_path = "package.json"
-    
+
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
@@ -472,14 +472,14 @@ def metric_rate(id):
     if not correctness:
         print('correctness')
         return err.unexpected_error()
-    license_score = compiledqueries.getLicenseScore(name, owner,'license.txt')
+    license_score = licenseScore(owner,name)
     # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
     # license_score = 0
-    ramp_up = 0
+    ramp_up = calculate_ramp_up_score(owner,name)
 
     net_score = compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
     # # net_score = 0
-    # # Return 
+    # # Return
     metric = {}
     metric = {'BusFactor': bus_factor,
               'Correctness': correctness,

@@ -9,6 +9,10 @@ import base64
 import io
 import json
 from url_handler import *
+import os
+import shutil
+import git
+
 
 def get_decoded_content(content):
     # Get decoded file contents
@@ -52,7 +56,7 @@ def calculate_dependency_metric(package_json, version_spec):
 
     fraction = num_pinned_dependencies / total_dependencies if total_dependencies > 0 else 1.0
     return fraction
-    
+
 def extract_repo_info(url):
     # Check if URL is an npm package URL
     npm_match = re.match(r'^https?://(?:www\.)?npmjs\.com/package/([^/]+)/?$', url)
@@ -91,7 +95,7 @@ def calculate_review_fraction(owner, repo):
     pr = response.json()[0]
     # print(pr)
     # print(type(pull_requests))
-    
+
     # if 'state' in pr.keys() or 'merged_at' in pr.keys():
     #     print('Found')
     reviewed_code = 0
@@ -139,3 +143,67 @@ def get_package_json(package_url, ty):
         return_json = json.loads(decoded_contents)
         return return_json
     return None
+
+def licenseScore(owner,repo_name):
+
+
+    try:
+        # Check if it is an npm package
+        response = requests.get(f"https://registry.npmjs.org/{repo_name}")
+        if response.status_code == 200:
+            data = response.json
+            try:
+               license_key = data["versions"][data["dist-tags"]["latest"]]["license"]
+
+            except KeyError:
+              license_key = "N/A"
+
+    except:
+     url = f"https://api.github.com/repos/{owner}/{repo_name}"
+     headers = {"Accept": "application/vnd.github.v3+json"}
+     res = requests.get(url, headers=headers)
+     data = res.json()
+     license_info = data["license"]
+     license_key = license_info["key"]
+
+
+    # These are set for outputting to the file that the final Python file reads
+
+    try:
+        score = CheckCompatibility(license_key)
+
+
+    except:
+        score = CheckCompatibility('N/A')
+    return score
+
+def CheckCompatibility(license):
+    # These lists of compatible and incompatible licenses are based on documents found online under the GPL licensing information website, will be linked in readme
+    # If its listed as other, that means that there is a license, but not explicitly stated within the repository and is under a readme.
+    # We were not able to regex readme, so we are assuming that lgpl is compatible as it is more common than not, compatible with licenses
+    incompatible = ['afl-3.0', 'cc', 'cc0-1.0', 'cc-by-4.0', 'epl-1.0', 'epl-2.0', 'agpl-3.0', 'postgresql', 'N/A']
+    compatible = ['artistic-2.0', 'bsl-1.0', 'bsd-2-clause', 'bsd-3-clause', 'BSD-3-Clause', 'Apache-2.0', 'BSD-2-Clause', 'Unlicense', 'bsd-3-clause-clear', 'mit', 'MIT', 'wtfpl', 'gpl', 'gpl-2.0', 'gpl-3.0', 'lgpl', 'lgpl-2.1', 'lgpl-3.0', 'isc', 'lppl-1.3c', 'ms-pl', 'mpl-2.0', 'osl-3.0', 'ofl-1.1', 'unlicense', 'zlib', 'ncsa', 'other', 'apache-2.0', 'ISC']
+
+    # These lists will now compared with the license passed in the parameter to see it is compatible
+    score = 0
+    if license in compatible:
+        score = 1
+    return score
+
+
+def get_github_repo_readme(owner, repo):
+    """Retrieve the contents of the README file for a given GitHub repository."""
+    url = f"https://raw.githubusercontent.com/{owner}/{repo}/main/README.md"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text
+    return None
+
+def calculate_ramp_up_score(owner, repo):
+    """Calculate the ramp-up score for a given GitHub repository."""
+    readme = get_github_repo_readme(owner, repo)
+    if readme is not None:
+        rampup_time = 1
+    else:
+        rampup_time = 0
+    return rampup_time
