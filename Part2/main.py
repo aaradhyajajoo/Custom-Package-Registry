@@ -1,5 +1,10 @@
 '''Import Statements'''
 
+# Restler Testing
+from restler import Restler
+restler = Restler(api_spec_file='Spec.yaml')
+app = restler.instrument(app)
+
 # Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
 from rate import *
