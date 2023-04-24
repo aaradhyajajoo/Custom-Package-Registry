@@ -1,7 +1,8 @@
 import { spawnSync } from 'child_process';
 import { expect, test } from '@jest/globals';
 
-test('package API', () => {
+// POST package
+test('post package, success', () => {
   const delete_command = 'bash test12delete.sh';
   const delete_process = spawnSync(delete_command, { shell: true });
 
@@ -14,9 +15,31 @@ test('package API', () => {
   expect(response).toEqual(expectedJson);
 });
 
+//  POST package
+test('post package no auth', () => {
+  const curlCommand = 'bash test11package.sh'
+  const expectedJson = {"message": "Authentication failed."};
+  const process = spawnSync(curlCommand, { shell: true });
+  const output = process.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
+
+//  POST package
+test('post package, missing fields', () => {
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test16package.sh'
+  const expectedJson = {"message": "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid."}
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
+
 // INCLUDE MISSING FIELDS ERROR WHEN I CAN RUN PACKAGE
 
-// test('reset', () => {
+// test('delete reset, success', () => {
 
 //   const curlCommand = 'bash test2reset.sh'
 //   //const expectedJson = { message: 'Success.' };
@@ -26,7 +49,7 @@ test('package API', () => {
 //   expect(response).toEqual("Registry is reset.");
 // });
 
-test('reset no permission', () => {
+test('delete reset, no permission', () => {
 
   const curlCommand = 'bash test3reset.sh'
   const expectedJson = {"message": "You do not have permission to reset the registry."}
@@ -37,7 +60,7 @@ test('reset no permission', () => {
 });
 
 
-test('regex found', () => {
+test('post regex, regex found', () => {
 
   const curlCommand1 = 'bash test1package.sh'
   const curlCommand2 = 'bash test4regex.sh'
@@ -49,7 +72,7 @@ test('regex found', () => {
   expect(response).toEqual(expectedJson);
 });
 
-test('regex not found', () => {
+test('post regex, regex not found', () => {
   const curlCommand1 = 'bash test1package.sh'
   const curlCommand2 = 'bash test5regex.sh'
   const expectedJson = { "message": "Package does not exist." };
@@ -60,7 +83,7 @@ test('regex not found', () => {
   expect(response).toEqual(expectedJson);
 });
 
-test('null regex', () => {
+test('post regex, missing fields', () => {
   const curlCommand1 = 'bash test1package.sh'
   const curlCommand2 = 'bash test6regex.sh'
   const expectedJson = {"message": "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid."}
@@ -97,18 +120,9 @@ test('get ID, ID does not exists', () => {
   expect(response).toEqual(expectedJson);
 });
 
-test('put auth', () => {
+test('put authenticate', () => {
   const curlCommand = 'bash test10auth.sh'
   const expectedJson = {"message": "This system does not support authentication."};
-  const process = spawnSync(curlCommand, { shell: true });
-  const output = process.stdout?.toString();
-  const response = JSON.parse(output || '');
-  expect(response).toEqual(expectedJson);
-});
-
-test('package no auth', () => {
-  const curlCommand = 'bash test11package.sh'
-  const expectedJson = {"message": "Authentication failed."};
   const process = spawnSync(curlCommand, { shell: true });
   const output = process.stdout?.toString();
   const response = JSON.parse(output || '');

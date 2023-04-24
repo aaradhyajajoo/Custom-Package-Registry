@@ -1,0 +1,2 @@
+curl -X 'POST' \
+'http://127.0.0.1:50004/package' -H 'accept: application/json' -H 'X-Authorization: ihi' -H 'Content-Type: application/json' -d '{"Content": "UEsDBAoAAAAAABF2MlYAAAAAAAAAAAAAAAAOAAkAbm9kaXN0LW1hc3Rlci9VVAUAAUJ3yGNQSwMECgAAAAgAEXYyVrH/4LyFAAAA('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'

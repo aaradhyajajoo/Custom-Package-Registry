@@ -25,7 +25,7 @@ import re
 
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 50002
+PORT_NUMBER = 50004
 
 '''Inits'''
 err = Err_Class() # Errors
@@ -208,7 +208,6 @@ def list_of_packages():
         return err.missing_fields()
 
     # print(f'Package Queries = {package_queries}')
-    check_error = False
     pack_list = []  # List of packages to be returned
 
     ref = db.reference('packages')
@@ -223,7 +222,6 @@ def list_of_packages():
                 pack_list.append(package['metadata'])
         # Returning specific packages
         else:
-            length = len(pack_list)
             for package in all_packages.values():  # Checking all packages in the DB for each query
                 if package['metadata'] not in uniq_pack_list:
                     if query['Name'] == package['metadata']['Name'] and query['Version'] == package['metadata']['Version']:
