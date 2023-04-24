@@ -148,6 +148,8 @@ def licenseScore(owner,repo_name):
     headers = {"Accept": "application/vnd.github.v3+json"}
     res = requests.get(url, headers=headers)
     data = res.json()
+    if not data:
+        return None
 
     # Check if it's a GitHub or NPM repository
     if "license" in data:

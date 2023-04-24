@@ -25,7 +25,7 @@ import re
 
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 5000
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class() # Errors
@@ -472,9 +472,14 @@ def metric_rate(id):
         print('correctness')
         return err.unexpected_error()
     license_score = licenseScore(owner,name)
+    print(license_score)
+    if license_score is None:
+        print("license")
+        return err.unexpected_error()
     # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
     # license_score = 0
     ramp_up = calculate_ramp_up_score(owner,name)
+    
 
     net_score = compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
     # # net_score = 0
