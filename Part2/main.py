@@ -24,7 +24,7 @@ import re
 import gzip
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8080
+PORT_NUMBER = 5000
 
 '''Inits'''
 err = Err_Class()  # Errors
