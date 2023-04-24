@@ -186,6 +186,16 @@ test('rate, success', () => {
   expect(Object.keys(dic).length).toBe(8);
 });
 
+test('POST packages, success', () => {
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test17packages.sh'
+  const expectedJson = [{"ID": "nodist_0.9.1", "Name": "nodist", "Version": "0.9.1"}]
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
 
 // SKIPPING PUT... DO NOT REALLY UNDERSTAND IT FOR NOW
 // same for POST

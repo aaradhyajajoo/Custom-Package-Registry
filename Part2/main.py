@@ -1,11 +1,9 @@
 '''Import Statements'''
 
-# Part 1 - Rating
+# Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
 from rate import *
 import base64
-
-
 
 # Error Class
 from errors import Err_Class
@@ -13,7 +11,7 @@ from errors import Err_Class
 # Firebase Connection
 from firebase_admin import db, credentials
 import firebase_admin
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import json
 import os
 from firestore import decode_service_account
@@ -22,13 +20,13 @@ from firestore import decode_service_account
 import re
 
 # Package Endpoint
-
+import gzip
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
 PORT_NUMBER = 50004
 
 '''Inits'''
-err = Err_Class() # Errors
+err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
 decode_service_account()
 cred = credentials.Certificate("service_account.json")
@@ -39,8 +37,11 @@ firebase_admin.initialize_app(cred, options={
 
 '''Endpoints'''
 
+#ENDPOINTS
 # curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
 # POST Package Create and POST Package Ingest
+
+
 @app.route('/package', methods=['POST'])
 def create():
 
@@ -52,7 +53,6 @@ def create():
 
     # Gets the JSON data from the request
     data = request.get_json()
-    # print(data.keys())
 
     # Checking error 404
     if not data:
@@ -75,7 +75,6 @@ def create():
             return err.malformed_req()
 
     elif 'Content' in data.keys():
-        print('Content reading')
         content = data['Content']
         url = get_decoded_content(content)
         print(f'URL : {url}')
@@ -96,7 +95,7 @@ def create():
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
         print(f'API URL: {api_url}')
-        package_json = get_package_json(api_url,'github')
+        package_json = get_package_json(api_url, 'github')
         print(f'Package json: {package_json}')
         if not package_json:
             return err.malformed_req()
@@ -114,8 +113,7 @@ def create():
         version = package_json['version']
         ID = f"{name}_{version}"
 
-
-    metadata = {'Name':name, 'Version':version, 'ID': ID}
+    metadata = {'Name': name, 'Version': version, 'ID': ID}
     data_field = data
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
@@ -169,7 +167,7 @@ def create():
                     }
                     ref.update(update_data)  # Updates DB
                     package = ref.get('packages/' + firebaseID)
-                    return json.dumps(package),201
+                    return json.dumps(package), 201
                 else:
                     return err.package_exists()
         elif ID not in unique_id_list:
@@ -177,7 +175,7 @@ def create():
         else:
             return err.package_exists()
 
-    return json.dumps(package),201
+    return json.dumps(package), 201
 
 # Curl requests: curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
 # eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' \
@@ -249,6 +247,7 @@ def list_of_packages():
 # 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI /
 # 6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 # DELETE Reset Registry
+
 
 @app.route('/reset', methods=['DELETE'])
 def reset_registry():
@@ -347,7 +346,7 @@ def PackageDelete(id):
     id_exists = False
 
     # Gets firebaseID of the package (metadata in this case) that we need to update
-    # print(all_packages.items())
+
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
         if not metadata:
@@ -381,17 +380,18 @@ def metric_rate(id):
     if not all_packages:
         return err.malformed_req()
 
+    # Checks if Package exists in FireStore Databae
     print('Checking package_data')
     package_data = None
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
         if 'ID' not in metadata.keys():
-            err.missing_fields() # Error 400
+            err.missing_fields()  # Error 400
         if id == metadata['ID']:
             package_data = p_data
             check_package = True
             break
-
+    # Tries to find name and version in Database
     p_name = p_data['metadata']['Name']
     p_version = p_data['metadata']['Version']
     if not p_name or not p_version:
@@ -403,7 +403,7 @@ def metric_rate(id):
 
     data = package_data['data']
 
-    # Get decoded package content
+    #Decodes the encoded content field from Data. Also checks if there is no URL in meta data
     if 'Content' in data.keys() and 'URL' not in data.keys():
         print('Reading content')
         content = data['Content']
@@ -413,19 +413,17 @@ def metric_rate(id):
         url = get_decoded_content(content)
 
     elif 'Content' not in data.keys() and 'URL' in data.keys():
-        # Get package URL from package data
-        # print('reading url')
+        # Get package URL from package data if it does not contain content
         url = data['URL']
         if url is None:
             return err.missing_fields()
-
+    # Check if URL is npm or github
     if 'npm' in url:
             package_json = get_package_json(url, 'npm')
             print(f'Package json: {package_json}')
             ty = 'npm'
     elif 'github' in url:
             owner, repo, ty = extract_repo_info(url)
-            # print(f'In main: {owner},{repo}')
     else:
             return err.missing_fields()
 
@@ -435,9 +433,8 @@ def metric_rate(id):
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
-        print(f'API URL: {api_url}')
+         #print(f'API URL: {api_url}')
         package_json = get_package_json(api_url,'github')
-        # print(f'Package json: {package_json}')
         if not package_json:
             return err.malformed_req()
 
@@ -447,45 +444,47 @@ def metric_rate(id):
 
     owner, name, ty = extract_repo_info(url)
     if owner is None or name is None or ty is None:
-        return err.unexpected_error() # Check
+        return err.unexpected_error() # Error 500 (Did not find owner or repo)
 
-    # # Calculate metrics
+    #  Calculate metrics (5 metrics from Part 1 and 2 new metrics)
     code_review = calculate_review_fraction(owner, name)
     if code_review is  None:
-        print('code review')
+        #print('code review')
         return err.unexpected_error()
     dependency = calculate_dependency_metric(package_json, p_version)
     if dependency is None:
-        print('dependency')
+        #print('dependency')
         return err.unexpected_error()
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     if bus_factor is None:
-        print('bus factor')
+        #('bus factor')
         return err.unexpected_error()
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
     if not responsiveness:
-        print('responsiveness')
+        #print('responsiveness')
         return err.unexpected_error()
     correctness = compiledqueries.getCorrectnessScore(owner, name)
     if not correctness:
-        print('correctness')
+        #print('correctness')
         return err.unexpected_error()
     license_score = licenseScore(owner,name)
-    # ramp_up = compiledqueries.getRampUpScore(owner, name,'rampup_time.txt')
-    # license_score = 0
+    if not license_score:
+        return err.unexpected_error()
     ramp_up = calculate_ramp_up_score(owner,name)
+    if not ramp_up:
+        return err.unexpected_error()
 
-    net_score = compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner)
-    # # net_score = 0
-    # # Return
-    metric = {}
-    metric = {'BusFactor': bus_factor,
+    net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner) ) + 0.2 * dependency + 0.1 *code_review
+    if not net_score:
+        return err.unexpected_error() # Calculations for metrics choked
+    metric_dict = {}
+    metric_dict = {'BusFactor': bus_factor,
               'Correctness': correctness,
               'RampUp': ramp_up,
-              'ResponsiveMaintainer': responsiveness,
+              'Responsiveness': responsiveness,
               'LicenseScore': license_score,
               'GoodPinningPractice': dependency,
-              'PullRequest': code_review,
+              'CodeReviewFractiom': code_review,
               'NetScore': net_score
               }
 
@@ -497,7 +496,7 @@ def metric_rate(id):
 
 @app.route('/')
 def index():
-    return jsonify(db.reference('packages').get())
+    return "Hello, World!"
 
 
 @app.route('/authenticate/', methods=['PUT'])
@@ -508,8 +507,6 @@ def authenticate():
 @app.route('/package/byRegEx', methods=['POST'])
 def package_by_regex():
     # format the regex to make it compatible with code.
-    # regex_pattern = regex.strip()
-
     regex = request.json
     regex_pattern = regex['RegEx']
     if not regex_pattern:
@@ -561,9 +558,115 @@ def search_packages_by_regex(regex_pattern):
     return matched_packages
 
 
+@app.route('/ui/package', methods=['GET', 'POST'])
+def package_by_name():
+    # do the same thing as app.route /ui/package but with a UI
+    return render_template('ui_package.html')
+
+
+@app.route('/upload', methods=['POST'])
+def action():
+    if 'file' not in request.files:
+        return 'No file submitted', 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return 'No file submitted', 400
+
+    with open("Zipfile/" + file.filename, 'wb') as f:
+        f.write(file.read())
+
+    with open("Zipfile/" + file.filename, 'rb') as file:
+        # Read the file contents
+        file_content = file.read()
+
+        # Encode the compressed content into base64 format
+        encoded_content = base64.b64encode(file_content)
+
+        # Convert the encoded content to string
+        encoded_string = encoded_content.decode('utf-8')
+
+    # now we have the encoded content in the encoded_content variable.
+    # we can use this to call the request.
+
+    url = 'http://127.0.0.1:5000/package'
+    headers = {
+        'accept': 'application/json',
+        'X-Authorization': 'j',
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'Content': str(encoded_string),
+        'JSProgram': 'if (process.argv.length === 7) {\nconsole.log(\'Success\')\nprocess.exit(0)\n} else {\nconsole.log(\'Failed\')\nprocess.exit(1)\n}\n'
+    }
+    res = requests.post(url, headers=headers, json=data)
+    return res.text
+
+
+@app.route('/upload_text', methods=['POST'])
+def package_text():
+    url = 'http://127.0.0.1:5000/package'
+    headers = {
+        'accept': 'application/json',
+        'X-Authorization': 'j',
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'URL': str(request.form.get('url')),
+        'JSProgram': 'if (process.argv.length === 7) {\nconsole.log(\'Success\')\nprocess.exit(0)\n} else {\nconsole.log(\'Failed\')\nprocess.exit(1)\n}\n'
+    }
+
+    res = requests.post(url, headers=headers, json=data)
+    return res.text
+
+
+@app.route('/ui/packages', methods=['GET', 'POST'])
+def render_all_packages():
+    return render_template('ui_packages.html')
+
+
+@app.route('/ui/packages_render', methods=['GET', 'POST'])
+def render_all_packages_data():
+    # call the function list_of_packages to get all the packages
+    # create a dictionary to store the data
+    url = 'http://127.0.0.1:8080/packages'
+    headers = {
+        'accept': 'application/json',
+        'X-Authorization': 'j',
+        'Content-Type': 'application/json'
+    }
+    data = [{
+        "Version": str(request.form.get('version')),
+        "Name": str(request.form.get('name'))
+    }]
+
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code < 300:
+        data = {
+            'id': response.json()[0]["ID"],
+            'name': response.json()[0]["Name"],
+            'version': response.json()[0]["Version"]
+        }
+        return render_template('ui_packages_render.html', data=data)
+    else:
+        return response.text
+
+
+@app.route('/ui/reset/', methods=['GET', 'POST'])
+def reset_all():
+    return render_template('ui_reset.html')
+
+
+@app.route('/ui/reset_registry', methods=['GET', 'POST'])
+def reset_all_packages():
+    url = 'http://127.0.0.1:8000/reset/'
+    headers = {
+        'X-Authorization': 'j',
+    }
+    response = requests.delete(url, headers=headers)
+    return response.text
+
 
 if __name__ == '__main__':
-    # import os
-
     port = int(os.environ.get('PORT', PORT_NUMBER))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='127.0.0.1', port=port, debug=True)
