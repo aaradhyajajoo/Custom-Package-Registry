@@ -144,28 +144,29 @@ def get_package_json(package_url, ty):
     return None
 
 def licenseScore(owner,repo_name):
-    url = f"https://api.github.com/repos/{owner}/{repo_name}"
-    headers = {"Accept": "application/vnd.github.v3+json"}
-    res = requests.get(url, headers=headers)
-    data = res.json()
-    if not data:
-        return None
 
-    # Check if it's a GitHub or NPM repository
-    if "license" in data:
-        license_info = data["license"]
-        license_key = license_info["key"]
-        url = f"https://github.com/{owner}/{repo_name}"
-    else:
-        url = f"https://www.npmjs.com/package/{repo_name}"
-        try:
-            license_key = data["versions"][data["dist-tags"]["latest"]]["license"]
-        except KeyError:
-            license_key = "N/A"
+
+    try:
+        # Check if it is an npm package
+        response = requests.get(f"https://registry.npmjs.org/{repo_name}")
+        if response.status_code == 200:
+            data = response.json
+            try:
+               license_key = data["versions"][data["dist-tags"]["latest"]]["license"]
+
+            except KeyError:
+              license_key = "N/A"
+
+    except:
+     url = f"https://api.github.com/repos/{owner}/{repo_name}"
+     headers = {"Accept": "application/vnd.github.v3+json"}
+     res = requests.get(url, headers=headers)
+     data = res.json()
+     license_info = data["license"]
+     license_key = license_info["key"]
+
 
     # These are set for outputting to the file that the final Python file reads
-    newline = "\n"
-    space = " "
 
     try:
         score = CheckCompatibility(license_key)
