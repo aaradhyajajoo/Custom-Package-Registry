@@ -197,6 +197,29 @@ test('POST packages, success', () => {
   expect(response).toEqual(expectedJson);
 });
 
+test('POST packages, no authorization', () => {
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test18packages.sh'
+  const expectedJson = {"message": "Authentication failed."}
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  console.log(response);
+  expect(response).toEqual(expectedJson);
+});
+
+test('POST packages, package DNE', () => {
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test19packages.sh'
+  const expectedJson = {"message": "Package does not exist."}
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  console.log(response);
+  expect(response).toEqual(expectedJson);
+});
 // SKIPPING PUT... DO NOT REALLY UNDERSTAND IT FOR NOW
 // same for POST
 // unsure why rate isnt working
