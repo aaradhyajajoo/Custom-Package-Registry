@@ -86,5 +86,5 @@ headers = {
     'X-Authorization': 'cdc'
 }
 
-response = requests.get(url, headers=headers)
-print(f'/rate endpoint response - {response.text}')
+# response = requests.get(url, headers=headers)
+# print(f'/rate endpoint response - {response.text}')
