@@ -127,7 +127,7 @@ def create():
     if owner is None or name is None or ty is None:
         return err.unexpected_error('the URL') # Error 500 (Did not find owner or repo)
 
-    #  Calculate metrics (5 metrics from Part 1 and 2 new metrics)
+    #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
     code_review = calculate_review_fraction(owner, name)
     if code_review is None:
         #print('code review')
