@@ -12,6 +12,8 @@ from url_handler import *
 import os
 import shutil
 import git
+from bs4 import BeautifulSoup
+
 
 def decode_into_zipFile(content):
     with open('ZipFile_decoded/package.zip', 'wb') as zip_file:
@@ -199,16 +201,33 @@ def CheckCompatibility(license):
 
 def get_github_repo_readme(owner, repo):
     """Retrieve the contents of the README file for a given GitHub repository."""
-    url = f"https://raw.githubusercontent.com/{owner}/{repo}/main/README.md" 
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.text
-    return None
+    repo_url = f'https://github.com/{owner}/{repo}'
+
+    # response = requests.get(url)
+    # print(f'RESPONSE = {response.json}')
+    # if response.status_code == 200:
+    #     return response.text
+    # return None
+
+    # repo_url = "https://github.com/username/repo"
+
+    response = requests.get(repo_url)
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    readme_link = soup.find("a", {"title": "README.md"})
+    if readme_link:
+        readme_url = "https://github.com" + readme_link["href"]
+        response = requests.get(readme_url)
+        readme_text = response.text
+        return True
+    else:
+        return False
 
 def calculate_ramp_up_score(owner, repo):
     """Calculate the ramp-up score for a given GitHub repository."""
     readme = get_github_repo_readme(owner, repo)
-    if readme is not None:
+
+    if readme:
         rampup_time = 1
     else:
         rampup_time = 0
