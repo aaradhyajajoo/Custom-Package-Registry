@@ -53,6 +53,11 @@ def getBusFactorScore(owner, name):
     if req is None:
         return None
     result = req.json()
+    # print(f'result = {result}')
+    if 'message' in result.keys():
+        if result['message'] == 'Bad credentials':
+            return -1
+        
     if result['data']['repository'] == None:
         return 0
     numContributors = result['data']['repository']['mentionableUsers']['totalCount']

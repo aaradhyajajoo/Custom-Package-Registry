@@ -199,7 +199,7 @@ def CheckCompatibility(license):
 
 def get_github_repo_readme(owner, repo):
     """Retrieve the contents of the README file for a given GitHub repository."""
-    url = f"https://raw.githubusercontent.com/{owner}/{repo}/main/README.md"
+    url = f"https://raw.githubusercontent.com/{owner}/{repo}/main/README.md" 
     response = requests.get(url)
     if response.status_code == 200:
         return response.text
@@ -212,4 +212,5 @@ def calculate_ramp_up_score(owner, repo):
         rampup_time = 1
     else:
         rampup_time = 0
+    print(f'Ramp_up = {rampup_time}')
     return rampup_time

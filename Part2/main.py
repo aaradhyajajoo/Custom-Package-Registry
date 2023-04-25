@@ -39,6 +39,7 @@ firebase_admin.initialize_app(cred, options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
+bad_creds = False
 
 '''Endpoints'''
 
@@ -54,7 +55,7 @@ def create():
     authorization = None
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
-        return err.auth_failure()
+        return err.auth_failure(bad_creds)
 
     # Gets the JSON data from the request
     data = request.get_json()
@@ -122,9 +123,59 @@ def create():
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
     # Need to check error 424
+    owner, name, ty = extract_repo_info(url)
+    if owner is None or name is None or ty is None:
+        return err.unexpected_error('the URL') # Error 500 (Did not find owner or repo)
 
-    # if rate < 0.5:
-    #     err.disqualified_rating()
+    #  Calculate metrics (5 metrics from Part 1 and 2 new metrics)
+    code_review = calculate_review_fraction(owner, name)
+    if code_review is None:
+        #print('code review')
+        return err.unexpected_error('CodeReviewFractiom')
+    dependency = calculate_dependency_metric(package_json, version)
+    if dependency is None:
+        #print('dependency')
+        return err.unexpected_error('GoodPinningPractice')
+    bus_factor = compiledqueries.getBusFactorScore(owner, name)
+    if bus_factor is None:
+        #('bus factor')
+        return err.unexpected_error('BusFactor')
+    elif bus_factor == -1:
+        return err.auth_failure(True)
+    responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+    if responsiveness is None:
+        #print('responsiveness')
+        return err.unexpected_error('Responsiveness')
+    correctness = compiledqueries.getCorrectnessScore(owner, name)
+    if correctness is None:
+        #print('correctness')
+        return err.unexpected_error('Correctness')
+    license_score = licenseScore(owner,name)
+    if license_score is None:
+        return err.unexpected_error('LicenseScore')
+    ramp_up = calculate_ramp_up_score(owner,name)
+    if ramp_up is None:
+        return err.unexpected_error('RampUp')
+
+    net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner) ) + 0.2 * dependency + 0.1 *code_review
+    if not net_score:
+        return err.unexpected_error('NetScore') # Calculations for metrics choked
+
+    metric_dict = {}
+    metric_dict = {'BusFactor': bus_factor,
+              'Correctness': correctness,
+              'RampUp': ramp_up,
+              'Responsiveness': responsiveness,
+              'LicenseScore': license_score,
+              'GoodPinningPractice': dependency,
+              'CodeReviewFractiom': code_review,
+              'NetScore': net_score
+              }
+    
+    for key, values in metric_dict.items():
+        if values < 0.5:
+            return err.disqualified_rating(key)
+
 
     package = {
         'metadata': metadata,
@@ -194,7 +245,7 @@ def list_of_packages():
     authorization = None
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
-        return err.auth_failure()
+        return err.auth_failure(bad_creds)
 
     # Gets package query from request body
     package_queries = request.json
@@ -272,7 +323,7 @@ def package_given_id(id):
     authorization = None
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
-        return err.auth_failure()
+        return err.auth_failure(bad_creds)
     if request.method == 'GET':
         return PackageRetrieve(id)
     if request.method == 'PUT':
@@ -491,22 +542,22 @@ def metric_rate(id):
         #('bus factor')
         return err.unexpected_error()
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
-    if not responsiveness:
+    if responsiveness is None:
         #print('responsiveness')
         return err.unexpected_error()
     correctness = compiledqueries.getCorrectnessScore(owner, name)
-    if not correctness:
+    if correctness is None:
         #print('correctness')
         return err.unexpected_error()
     license_score = licenseScore(owner,name)
-    if not license_score:
+    if license_score is None:
         return err.unexpected_error()
     ramp_up = calculate_ramp_up_score(owner,name)
-    if not ramp_up:
+    if ramp_up is None:
         return err.unexpected_error()
 
     net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner) ) + 0.2 * dependency + 0.1 *code_review
-    if not net_score:
+    if net_score is None:
         return err.unexpected_error() # Calculations for metrics choked
     metric_dict = {}
     metric_dict = {'BusFactor': bus_factor,
