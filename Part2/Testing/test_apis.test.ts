@@ -174,7 +174,7 @@ test('rate, success', () => {
 
   const output = process3.stdout?.toString();
   const dic = JSON.parse(output)
-
+  console.log(dic);
   expect(dic).toHaveProperty("BusFactor")
   expect(dic).toHaveProperty("Correctness")
   expect(dic).toHaveProperty("RampUp")
@@ -184,6 +184,22 @@ test('rate, success', () => {
   expect(dic).toHaveProperty("PullRequest")
   expect(dic).toHaveProperty("NetScore")
   expect(Object.keys(dic).length).toBe(8);
+});
+
+test('rate, no authorization', () => {
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test15rate.sh'
+  const curlCommand3 = 'bash cat_json.sh'
+  //const expectedJson = {"BusFactor": 1, "Correctness": 1, "RampUp": 0, "ResponsiveMaintainer": 1, "LicenseScore": 1, "GoodPinningPractice": 0.0, "PullRequest": 0, "NetScore": 0.8};
+
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const process3 = spawnSync(curlCommand3, { shell: true });
+
+  const output = process3.stdout?.toString();
+  const response = JSON.parse(output || '');
+  const expectedJson = {"message": "Authentication failed."};
+  expect(response).toEqual(expectedJson);
 });
 
 test('POST packages, success', () => {
@@ -205,7 +221,6 @@ test('POST packages, no authorization', () => {
   const process2 = spawnSync(curlCommand2, { shell: true });
   const output = process2.stdout?.toString();
   const response = JSON.parse(output || '');
-  console.log(response);
   expect(response).toEqual(expectedJson);
 });
 
@@ -217,7 +232,6 @@ test('POST packages, package DNE', () => {
   const process2 = spawnSync(curlCommand2, { shell: true });
   const output = process2.stdout?.toString();
   const response = JSON.parse(output || '');
-  console.log(response);
   expect(response).toEqual(expectedJson);
 });
 // SKIPPING PUT... DO NOT REALLY UNDERSTAND IT FOR NOW

@@ -23,7 +23,7 @@ import re
 import gzip
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 50004
+PORT_NUMBER = 5000
 
 '''Inits'''
 err = Err_Class()  # Errors
@@ -369,8 +369,11 @@ def metric_rate(id):
     authorization = None
     authorization = request.headers.get("X-Authorization")
     # print(f'req = {request}')
-    # if authorization is None:
-    #     return err.auth_failure()
+    print(f"_____{authorization}")
+    if authorization is None:
+        with open("Testing/test14rate.json", "w") as outfile:
+            json.dump({"message": "Authentication failed."}, outfile)
+        return err.auth_failure()
 
     # Get package data from Firebase
     check_package = False
