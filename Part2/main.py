@@ -1,10 +1,14 @@
 '''Import Statements'''
 
-# Part 1 - Rating
+# Restler Testing
+from restler import Restler
+restler = Restler(api_spec_file='Spec.yaml')
+app = restler.instrument(app)
+
+# Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
 from rate import *
 import base64
-
 
 # Error Class
 from errors import Err_Class
@@ -38,6 +42,7 @@ firebase_admin.initialize_app(cred, options={
 
 '''Endpoints'''
 
+#ENDPOINTS
 # curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
 # POST Package Create and POST Package Ingest
 
@@ -372,7 +377,7 @@ def PackageDelete(id):
     id_exists = False
 
     # Gets firebaseID of the package (metadata in this case) that we need to update
-  
+
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
         if not metadata:
@@ -406,6 +411,7 @@ def metric_rate(id):
     if not all_packages:
         return err.malformed_req()
 
+    # Checks if Package exists in FireStore Databae
     print('Checking package_data')
     package_data = None
     for firebaseID, p_data in all_packages.items():
@@ -416,7 +422,7 @@ def metric_rate(id):
             package_data = p_data
             check_package = True
             break
-
+    # Tries to find name and version in Database
     p_name = p_data['metadata']['Name']
     p_version = p_data['metadata']['Version']
     if not p_name or not p_version:
@@ -428,7 +434,7 @@ def metric_rate(id):
 
     data = package_data['data']
 
-    # Get decoded package content
+    #Decodes the encoded content field from Data. Also checks if there is no URL in meta data
     if 'Content' in data.keys() and 'URL' not in data.keys():
         print('Reading content')
         content = data['Content']
@@ -438,19 +444,17 @@ def metric_rate(id):
         url = get_decoded_content(content)
 
     elif 'Content' not in data.keys() and 'URL' in data.keys():
-        # Get package URL from package data
-        # print('reading url')
+        # Get package URL from package data if it does not contain content
         url = data['URL']
         if url is None:
             return err.missing_fields()
-
+    # Check if URL is npm or github
     if 'npm' in url:
             package_json = get_package_json(url, 'npm')
             print(f'Package json: {package_json}')
             ty = 'npm'
     elif 'github' in url:
             owner, repo, ty = extract_repo_info(url)
-            # print(f'In main: {owner},{repo}')
     else:
             return err.missing_fields()
 
@@ -460,9 +464,8 @@ def metric_rate(id):
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
-        print(f'API URL: {api_url}')
+         #print(f'API URL: {api_url}')
         package_json = get_package_json(api_url,'github')
-        # print(f'Package json: {package_json}')
         if not package_json:
             return err.malformed_req()
 
@@ -472,51 +475,51 @@ def metric_rate(id):
 
     owner, name, ty = extract_repo_info(url)
     if owner is None or name is None or ty is None:
-        return err.unexpected_error()  # Check
+        return err.unexpected_error() # Error 500 (Did not find owner or repo)
 
-    # # Calculate metrics
+    #  Calculate metrics (5 metrics from Part 1 and 2 new metrics)
     code_review = calculate_review_fraction(owner, name)
     if code_review is  None:
-        print('code review')
+        #print('code review')
         return err.unexpected_error()
     dependency = calculate_dependency_metric(package_json, p_version)
     if dependency is None:
-        print('dependency')
+        #print('dependency')
         return err.unexpected_error()
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     if bus_factor is None:
-        print('bus factor')
+        #('bus factor')
         return err.unexpected_error()
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
     if not responsiveness:
-        print('responsiveness')
+        #print('responsiveness')
         return err.unexpected_error()
     correctness = compiledqueries.getCorrectnessScore(owner, name)
     if not correctness:
-        print('correctness')
+        #print('correctness')
         return err.unexpected_error()
     license_score = licenseScore(owner,name)
-    print(license_score)
-    if license_score is None:
-        print("license")
+    if not license_score:
+        return err.unexpected_error()
+    ramp_up = calculate_ramp_up_score(owner,name)
+    if not ramp_up:
         return err.unexpected_error()
 
-    ramp_up = calculate_ramp_up_score(owner,name)
-
     net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner) ) + 0.2 * dependency + 0.1 *code_review
-
-    metric = {}
-    metric = {'BusFactor': bus_factor,
+    if not net_score:
+        return err.unexpected_error() # Calculations for metrics choked
+    metric_dict = {}
+    metric_dict = {'BusFactor': bus_factor,
               'Correctness': correctness,
               'RampUp': ramp_up,
-              'ResponsiveMaintainer': responsiveness,
+              'Responsiveness': responsiveness,
               'LicenseScore': license_score,
               'GoodPinningPractice': dependency,
-              'PullRequest': code_review,
+              'CodeReviewFractiom': code_review,
               'NetScore': net_score
               }
 
-    return json.dumps(metric), 200
+    return json.dumps(metric_dict),200
 
 
 @app.route('/')
@@ -532,8 +535,6 @@ def authenticate():
 @app.route('/package/byRegEx/', methods=['POST'])
 def package_by_regex():
     # format the regex to make it compatible with code.
-    # regex_pattern = regex.strip()
-
     regex = request.json
     regex_pattern = regex['RegEx']
     if not regex_pattern:
