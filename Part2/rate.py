@@ -13,7 +13,9 @@ import os
 import shutil
 import git
 
-
+def decode_into_zipFile(content):
+    with open('ZipFile_decoded/package.zip', 'wb') as zip_file:
+        zip_file.write(decoded_content)
 
 def get_decoded_content(content):
     # Get decoded file contents
@@ -150,7 +152,6 @@ def get_package_json(package_url, ty):
     return None
 
 def licenseScore(owner,repo_name):
-
 
     try:
         # Check if it is an npm package

@@ -282,11 +282,38 @@ def PackageRetrieve(id):
     ref = db.reference('packages')
     all_packages = ref.get()
 
+    pack_exists = False
+
     for p_data in all_packages.values():
         metadata = p_data['metadata']
         if id == metadata['ID']:
-            return json.dumps(p_data), 200
-    return err.package_doesNot_exist()
+            pack_exists = True
+            break
+    
+    if not pack_exists:
+        return err.package_doesNot_exist()
+    
+    data_field = p_data['data']
+    if 'Content' in data_field.keys() and 'URL' not in data_field.keys():
+        directory = 'ZipFile_decoded'
+        content = data_field['Content']
+
+        try:
+            decoded_content = base64.b64decode(content)
+        except binascii.Error:
+            return err.malformed_req()
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        with open(os.path.join(directory, 'package.zip'), 'wb') as zip_file:
+            zip_file.write(decoded_content)
+
+        return json.dumps(p_data), 200
+    else:
+        return err.malformed_req()
+        
+
 
 
 # Correct: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"URL": "string","JSProgram": "string"}}'
@@ -662,6 +689,7 @@ def reset_all_packages():
     }
     response = requests.delete(url, headers=headers)
     return response.text
+
 
 
 if __name__ == '__main__':
