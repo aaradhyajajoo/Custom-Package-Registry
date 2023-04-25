@@ -691,6 +691,10 @@ def reset_all_packages():
     response = requests.delete(url, headers=headers)
     return response.text
 
+@app.route('ui/package/<id>', methods=['GET', 'PUT', 'DELETE'])
+def package_by_id(id):
+    return render_template('ui_package_id.html')
+
 
 
 if __name__ == '__main__':

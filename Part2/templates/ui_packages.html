@@ -29,6 +29,20 @@
         <br>
         <input type="submit" value="Submit">
     </form>
+
+    <!-- accessibility features -->
+    <script>
+        const labels = document.getElementsByTagName('label');
+        Array.from(labels).forEach(label => {
+            const inputId = label.getAttribute('for');
+            const input = document.getElementById(inputId);
+            if (input) {
+                label.setAttribute('aria-label', label.innerText);
+                label.innerText = '';
+                input.setAttribute('aria-labelledby', inputId);
+            }
+        });
+    </script>
 </body>
 
 </html>
