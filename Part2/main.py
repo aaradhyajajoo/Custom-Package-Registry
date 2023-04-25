@@ -1,9 +1,9 @@
 '''Import Statements'''
 
 # Restler Testing
-from restler import Restler
-restler = Restler(api_spec_file='Spec.yaml')
-app = restler.instrument(app)
+# from restler import Restler
+# restler = Restler(api_spec_file='Spec.yaml')
+# app = restler.instrument(app)
 
 # Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
@@ -691,9 +691,31 @@ def reset_all_packages():
     response = requests.delete(url, headers=headers)
     return response.text
 
-@app.route('ui/package/<id>', methods=['GET', 'PUT', 'DELETE'])
-def package_by_id(id):
+@app.route('/ui/download/', methods=['GET', 'PUT', 'DELETE'])
+def package_by_id():
     return render_template('ui_package_id.html')
+
+@app.route('/ui/packages_get', methods=['POST'])
+def packages_get():
+    headers = {
+        'X-Authorization': 'j',
+    }
+    id = request.form.get('id')
+    method = request.form.get('method')
+    if id and method:
+        # make the appropriate request based on the selected method
+        if method == 'GET':
+            response = requests.get('http://127.0.0.1:5000/package/{}'.format(id),headers=headers)
+        elif method == 'PUT':
+            # perform PUT request with data from request.form
+            response = requests.put('http://127.0.0.1:5000/package/{}'.format(id), data=request.form,headers=headers)
+        elif method == 'DELETE':
+            response = requests.delete('http://127.0.0.1:5000/package/{}'.format(id),headers=headers)
+        if response.status_code == 200:
+            return response.content
+    # render the template with the form if no ID or method is provided or if the server returns an error
+    return render_template('ui_package_id.html')
+
 
 
 
