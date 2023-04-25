@@ -46,16 +46,21 @@
     <div class="container">
         <h1>List of Packages</h1>
         <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Version</th>
-            </tr>
-            <tr>
-                <td>{{ data["id"] }}</td>
-                <td>{{ data["name"] }}</td>
-                <td>{{ data["version"] }}</td>
-            </tr>
+            <caption>Table of packages</caption>
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Version</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ data["id"] }}</td>
+                    <td>{{ data["name"] }}</td>
+                    <td>{{ data["version"] }}</td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </body>
