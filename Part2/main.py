@@ -1,9 +1,16 @@
 '''Import Statements'''
 
+# Restler Testing
+# from restler import Restler
+# restler = Restler(api_spec_file='Spec.yaml')
+# app = restler.instrument(app)
+
 # Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
 from rate import *
 import base64
+from datetime import datetime
+import random
 
 # Error Class
 from errors import Err_Class
@@ -283,11 +290,38 @@ def PackageRetrieve(id):
     ref = db.reference('packages')
     all_packages = ref.get()
 
+    pack_exists = False
+
     for p_data in all_packages.values():
         metadata = p_data['metadata']
         if id == metadata['ID']:
-            return json.dumps(p_data), 200
-    return err.package_doesNot_exist()
+            pack_exists = True
+            break
+    
+    if not pack_exists:
+        return err.package_doesNot_exist()
+    
+    data_field = p_data['data']
+    if 'Content' in data_field.keys() and 'URL' not in data_field.keys():
+        directory = f'ZipFile_decoded_{datetime.now().strftime("%H_%M_%S")}_{random.randint(0, 1000)}'
+        content = data_field['Content']
+
+        try:
+            decoded_content = base64.b64decode(content)
+        except binascii.Error:
+            return err.malformed_req()
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        with open(os.path.join(directory, 'package.zip'), 'wb') as zip_file:
+            zip_file.write(decoded_content)
+
+        return json.dumps(p_data), 200
+    else:
+        return err.malformed_req()
+        
+
 
 
 # Correct: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"URL": "string","JSProgram": "string"}}'
@@ -668,6 +702,33 @@ def reset_all_packages():
     }
     response = requests.delete(url, headers=headers)
     return response.text
+
+@app.route('/ui/download/', methods=['GET', 'PUT', 'DELETE'])
+def package_by_id():
+    return render_template('ui_package_id.html')
+
+@app.route('/ui/packages_get', methods=['POST'])
+def packages_get():
+    headers = {
+        'X-Authorization': 'j',
+    }
+    id = request.form.get('id')
+    method = request.form.get('method')
+    if id and method:
+        # make the appropriate request based on the selected method
+        if method == 'GET':
+            response = requests.get('http://127.0.0.1:5000/package/{}'.format(id),headers=headers)
+        elif method == 'PUT':
+            # perform PUT request with data from request.form
+            response = requests.put('http://127.0.0.1:5000/package/{}'.format(id), data=request.form,headers=headers)
+        elif method == 'DELETE':
+            response = requests.delete('http://127.0.0.1:5000/package/{}'.format(id),headers=headers)
+        if response.status_code == 200:
+            return response.content
+    # render the template with the form if no ID or method is provided or if the server returns an error
+    return render_template('ui_package_id.html')
+
+
 
 
 if __name__ == '__main__':
