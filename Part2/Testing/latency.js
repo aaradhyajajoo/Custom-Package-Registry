@@ -50,9 +50,9 @@ Promise.all(promises)
         //console.log(`Command ${index + 1} (${command}): ${runtime}ms`);
     });
     //console.log(end_times);
-    console.log("mean: " + MEAN(end_times));
-    console.log("meadian: " + MEDIAN(end_times));
-    console.log("99th percentile: " + P99(end_times));
+    console.log("mean: " + MEAN(end_times) + "ms");
+    console.log("meadian: " + MEDIAN(end_times) + "ms");
+    console.log("99th percentile: " + P99(end_times) + "ms");
 })["catch"](function (err) {
     console.error(err);
 });
