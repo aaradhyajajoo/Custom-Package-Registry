@@ -234,6 +234,19 @@ test('POST packages, package DNE', () => {
   const response = JSON.parse(output || '');
   expect(response).toEqual(expectedJson);
 });
+
+test('GET ID, Download', () => {
+  const curlCommand = "bash clean.sh"
+  const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test7ID.sh'
+  const curlCommand3 = 'diff package.zip ../Zip*/pack*'
+  const process0 = spawnSync(curlCommand, { shell: true });
+  const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const process3 = spawnSync(curlCommand3, { shell: true });
+  const output = process3.stdout?.toString();
+  expect(output).toEqual("");
+});
 // SKIPPING PUT... DO NOT REALLY UNDERSTAND IT FOR NOW
 // same for POST
 // unsure why rate isnt working
