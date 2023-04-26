@@ -1,18 +1,9 @@
 import { spawn } from 'child_process';
 
-
-// const curlCommand = 'bash test1.sh'
-// const process = spawn(curlCommand, { shell: true });
-// console.log("LATENCY")
-
-// for (let i = 0; i < 10; i++)
-// {
-//   spawn(curlCommand, { shell: true });
-// }
-
-const commands = ['bash test1.sh','bash test2.sh','bash test3.sh','bash test4.sh','bash test5.sh','bash test6.sh',];
+const commands = ['bash lattest.sh','bash lattest.sh','bash lattest.sh','bash lattest.sh','bash lattest.sh'];
 
 const start_times = {};
+const end_times = {}
 const promises = commands.map((command, index) => {
   console.log('A\n') // delete later, just proof this is parralel
   const start_time = Date.now();
@@ -23,10 +14,11 @@ const promises = commands.map((command, index) => {
 
     const child = spawn(cmd, args, { shell: true });
 
-    child.on('close', (code) => {
+    child.on('close',(code) => {
       const endTime = Date.now();
       const runtime = endTime - start_time;
       resolve({ command, runtime });
+      end_times[index] = runtime;
     });
 
     child.on('error', (err) => {
@@ -45,3 +37,5 @@ Promise.all(promises)
   .catch((err) => {
     console.error(err);
   });
+
+  console.log(end_times);

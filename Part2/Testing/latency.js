@@ -1,15 +1,9 @@
 "use strict";
 exports.__esModule = true;
 var child_process_1 = require("child_process");
-// const curlCommand = 'bash test1.sh'
-// const process = spawn(curlCommand, { shell: true });
-// console.log("LATENCY")
-// for (let i = 0; i < 10; i++)
-// {
-//   spawn(curlCommand, { shell: true });
-// }
-var commands = ['bash test1.sh', 'bash test2.sh', 'bash test3.sh', 'bash test4.sh', 'bash test5.sh', 'bash test6.sh',];
+var commands = ['bash lattest.sh', 'bash lattest.sh', 'bash lattest.sh', 'bash lattest.sh', 'bash lattest.sh'];
 var start_times = {};
+var end_times = {};
 var promises = commands.map(function (command, index) {
     console.log('A\n'); // delete later, just proof this is parralel
     var start_time = Date.now();
@@ -21,6 +15,7 @@ var promises = commands.map(function (command, index) {
             var endTime = Date.now();
             var runtime = endTime - start_time;
             resolve({ command: command, runtime: runtime });
+            end_times[index] = runtime;
         });
         child.on('error', function (err) {
             reject(err);
@@ -37,3 +32,4 @@ Promise.all(promises)
 })["catch"](function (err) {
     console.error(err);
 });
+console.log(end_times);
