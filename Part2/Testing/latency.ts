@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 
 const commands = ['bash lattest.sh','bash lattest.sh','bash lattest.sh','bash lattest.sh','bash lattest.sh'];
-
+console.log('Latency details for “many clients download lodash”:');
 const start_times = {};
 var end_times = [0, 0, 0, 0, 0];
 const promises = commands.map((command, index) => {
@@ -60,7 +60,7 @@ Promise.all(promises)
     });
     //console.log(end_times);
     console.log("mean: " + MEAN(end_times) + "ms");
-    console.log("meadian: " + MEDIAN(end_times) + "ms");
+    console.log("median: " + MEDIAN(end_times) + "ms");
     console.log("99th percentile: " + P99(end_times) + "ms");
   })
   .catch((err) => {
