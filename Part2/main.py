@@ -1,7 +1,7 @@
 '''Import Statements'''
 # Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
-from rate import *
+import rate
 import base64
 import requests
 
