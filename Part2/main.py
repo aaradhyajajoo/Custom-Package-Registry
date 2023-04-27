@@ -1,13 +1,7 @@
 '''Import Statements'''
-
-# Restler Testing
-# from restler import Restler
-# restler = Restler(api_spec_file='Spec.yaml')
-# app = restler.instrument(app)
-
 # Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
-import rate
+from rate import *
 import base64
 import requests
 
@@ -34,9 +28,9 @@ PORT_NUMBER = 8080
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-decode_service_account()
-cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(cred, options={
+# decode_service_account()
+# cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -44,7 +38,7 @@ bad_creds = False
 
 '''Endpoints'''
 
-#ENDPOINTS
+# ENDPOINTS
 # curl -X 'POST' 'http://127.0.0.1:8080/package/' -H 'accept: application/json' -H 'X-Authorization: j' -H 'Content-Type: application/json' -d '{"Content": "check", "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n"}'
 # POST Package Create and POST Package Ingest
 
@@ -94,7 +88,6 @@ def create():
         else:
             return err.missing_fields()
 
-
     file_path = "package.json"
 
     # Construct the API URL for the package.json file
@@ -126,7 +119,8 @@ def create():
     # Need to check error 424
     owner, name, ty = rate.extract_repo_info(url)
     if owner is None or name is None or ty is None:
-        return err.unexpected_error('the URL') # Error 500 (Did not find owner or repo) marcelklehr,nodist
+        # Error 500 (Did not find owner or repo) marcelklehr,nodist
+        return err.unexpected_error('the URL')
 
     #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
     code_review = rate.calculate_review_fraction(owner, name)
@@ -135,7 +129,7 @@ def create():
         return err.unexpected_error('CodeReviewFractiom')
     dependency = rate.calculate_dependency_metric(package_json, version)
     if dependency is None:
-        #print('dependency')
+        # print('dependency')
         return err.unexpected_error('GoodPinningPractice')
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     if bus_factor is None:
@@ -145,38 +139,43 @@ def create():
         return err.auth_failure(True)
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
     if responsiveness is None:
-        #print('responsiveness')
+        # print('responsiveness')
         return err.unexpected_error('Responsiveness')
     correctness = compiledqueries.getCorrectnessScore(owner, name)
     if correctness is None:
-        #print('correctness')
+        # print('correctness')
         return err.unexpected_error('Correctness')
+
     license_score = rate.licenseScore(owner,name)
     if license_score is None:
         return err.unexpected_error('LicenseScore')
     ramp_up = rate.calculate_ramp_up_score(owner,name)
+
     if ramp_up is None:
         return err.unexpected_error('RampUp')
 
-    net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner) ) + 0.2 * dependency + 0.1 *code_review
+    net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness,
+                       ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
     if not net_score:
-        return err.unexpected_error('NetScore') # Calculations for metrics choked
+        # Calculations for metrics choked
+        return err.unexpected_error('NetScore')
 
     metric_dict = {}
     metric_dict = {'BusFactor': bus_factor,
-              'Correctness': correctness,
-              'RampUp': ramp_up,
-              'Responsiveness': responsiveness,
-              'LicenseScore': license_score,
-              'GoodPinningPractice': dependency,
-              'CodeReviewFractiom': code_review,
-              'NetScore': net_score
-              }
+
+                   'Correctness': correctness,
+                   'RampUp': ramp_up,
+                   'Responsiveness': responsiveness,
+                   'LicenseScore': license_score,
+                   'GoodPinningPractice': dependency,
+                   'CodeReviewFractiom': code_review,
+                   'NetScore': net_score
+                   }
+
 
     for key, values in metric_dict.items():
         if values < 0.5:
             return err.disqualified_rating(key)
-
 
     package = {
         'metadata': metadata,
@@ -372,7 +371,6 @@ def PackageRetrieve(id):
 
 
 
-
 # Correct: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"URL": "string","JSProgram": "string"}}'
 def PackageUpdate(id):
     ref = db.reference('packages')
@@ -486,7 +484,7 @@ def metric_rate(id):
 
     data = package_data['data']
 
-    #Decodes the encoded content field from Data. Also checks if there is no URL in meta data
+    # Decodes the encoded content field from Data. Also checks if there is no URL in meta data
     if 'Content' in data.keys() and 'URL' not in data.keys():
         print('Reading content')
         content = data['Content']
@@ -502,22 +500,23 @@ def metric_rate(id):
             return err.missing_fields()
     # Check if URL is npm or github
     if 'npm' in url:
-            package_json = rate.get_package_json(url, 'npm')
-            print(f'Package json: {package_json}')
-            ty = 'npm'
+        package_json = get_package_json(url, 'npm')
+        print(f'Package json: {package_json}')
+        ty = 'npm'
     elif 'github' in url:
-            owner, repo, ty = rate.extract_repo_info(url)
-    else:
-            return err.missing_fields()
+        owner, repo, ty = extract_repo_info(url)
 
+    else:
+        return err.missing_fields()
 
     file_path = "package.json"
 
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
-         #print(f'API URL: {api_url}')
-        package_json = rate.get_package_json(api_url,'github')
+        #print(f'API URL: {api_url}')
+        package_json = get_package_json(api_url, 'github')
+
         if not package_json:
             return err.malformed_req()
 
@@ -527,16 +526,18 @@ def metric_rate(id):
 
     owner, name, ty = rate.extract_repo_info(url)
     if owner is None or name is None or ty is None:
-        return err.unexpected_error() # Error 500 (Did not find owner or repo)
+        return err.unexpected_error()  # Error 500 (Did not find owner or repo)
 
     #  Calculate metrics (5 metrics from Part 1 and 2 new metrics)
-    code_review = rate.calculate_review_fraction(owner, name)
-    if code_review is  None:
+
+    code_review = calculate_review_fraction(owner, name)
+    if code_review is None:
+
         #print('code review')
         return err.unexpected_error()
     dependency = rate.calculate_dependency_metric(package_json, p_version)
     if dependency is None:
-        #print('dependency')
+        # print('dependency')
         return err.unexpected_error()
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     if bus_factor is None:
@@ -544,34 +545,36 @@ def metric_rate(id):
         return err.unexpected_error()
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
     if responsiveness is None:
-        #print('responsiveness')
+        # print('responsiveness')
         return err.unexpected_error()
     correctness = compiledqueries.getCorrectnessScore(owner, name)
     if correctness is None:
-        #print('correctness')
+        # print('correctness')
         return err.unexpected_error()
-    license_score = rate.licenseScore(owner,name)
+    license_score = licenseScore(owner, name)
     if license_score is None:
         return err.unexpected_error()
-    ramp_up = rate.calculate_ramp_up_score(owner,name)
+    ramp_up = calculate_ramp_up_score(owner, name)
+
     if ramp_up is None:
         return err.unexpected_error()
 
-    net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness, ramp_up, responsiveness, owner) ) + 0.2 * dependency + 0.1 *code_review
+    net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness,
+                       ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
     if net_score is None:
-        return err.unexpected_error() # Calculations for metrics choked
+        return err.unexpected_error()  # Calculations for metrics choked
     metric_dict = {}
     metric_dict = {'BusFactor': bus_factor,
-              'Correctness': correctness,
-              'RampUp': ramp_up,
-              'Responsiveness': responsiveness,
-              'LicenseScore': license_score,
-              'GoodPinningPractice': dependency,
-              'CodeReviewFractiom': code_review,
-              'NetScore': net_score
-              }
+                   'Correctness': correctness,
+                   'RampUp': ramp_up,
+                   'Responsiveness': responsiveness,
+                   'LicenseScore': license_score,
+                   'GoodPinningPractice': dependency,
+                   'CodeReviewFractiom': code_review,
+                   'NetScore': net_score
+                   }
 
-    return json.dumps(metric_dict),200
+    return json.dumps(metric_dict), 200
 
 
 @app.route('/')
@@ -643,6 +646,7 @@ def package_by_name():
 
 @app.route('/upload', methods=['POST'])
 def action():
+    print(request.path)
     if 'file' not in request.files:
         return 'No file submitted', 400
 
@@ -666,7 +670,8 @@ def action():
     # now we have the encoded content in the encoded_content variable.
     # we can use this to call the request.
 
-    url = 'http://127.0.0.1:5000/package'
+    # print(request.url)
+    url = request.url[:len(request.url) - len(request.path)] + '/package'
     headers = {
         'accept': 'application/json',
         'X-Authorization': 'j',
@@ -682,7 +687,7 @@ def action():
 
 @app.route('/upload_text', methods=['POST'])
 def package_text():
-    url = 'http://127.0.0.1:5000/package'
+    url = request.url[:len(request.url) - len(request.path)] + '/package'
     headers = {
         'accept': 'application/json',
         'X-Authorization': 'j',
@@ -706,7 +711,7 @@ def render_all_packages():
 def render_all_packages_data():
     # call the function list_of_packages to get all the packages
     # create a dictionary to store the data
-    url = 'http://127.0.0.1:8080/packages'
+    url = request.url[:len(request.url) - len(request.path)] + '/packages'
     headers = {
         'accept': 'application/json',
         'X-Authorization': 'j',
@@ -736,16 +741,18 @@ def reset_all():
 
 @app.route('/ui/reset_registry', methods=['GET', 'POST'])
 def reset_all_packages():
-    url = 'http://127.0.0.1:8000/reset/'
+    url = request.url[:len(request.url) - len(request.path)] + '/reset'
     headers = {
         'X-Authorization': 'j',
     }
     response = requests.delete(url, headers=headers)
     return response.text
 
+
 @app.route('/ui/download/', methods=['GET', 'PUT', 'DELETE'])
 def package_by_id():
     return render_template('ui_package_id.html')
+
 
 @app.route('/ui/packages_get', methods=['POST'])
 def packages_get():
@@ -754,21 +761,26 @@ def packages_get():
     }
     id = request.form.get('id')
     method = request.form.get('method')
+    url = '{}{}'.format(
+        request.url[:len(request.url) - len(request.path)] + '/package/', id)
     if id and method:
         # make the appropriate request based on the selected method
         if method == 'GET':
-            response = requests.get('http://127.0.0.1:5000/package/{}'.format(id),headers=headers)
+            response = requests.get(url, headers=headers)
         elif method == 'PUT':
             # perform PUT request with data from request.form
-            response = requests.put('http://127.0.0.1:5000/package/{}'.format(id), data=request.form,headers=headers)
+            response = requests.put(url, data=request.form, headers=headers)
         elif method == 'DELETE':
-            response = requests.delete('http://127.0.0.1:5000/package/{}'.format(id),headers=headers)
+            response = requests.delete(url, headers=headers)
         if response.status_code == 200:
             return response.content
     # render the template with the form if no ID or method is provided or if the server returns an error
     return render_template('ui_package_id.html')
 
 
+@app.route("/ui/", methods=['GET', 'POST'])
+def main_ui():
+    return render_template('ui.html')
 
 
 if __name__ == '__main__':
