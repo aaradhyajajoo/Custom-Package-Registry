@@ -43,7 +43,7 @@ bad_creds = False
 # POST Package Create and POST Package Ingest
 
 
-@app.route('/package', methods = ['POST'])
+@app.route('/package', methods=['POST'])
 def create():
 
     # Checks Authorization
@@ -146,10 +146,10 @@ def create():
         # print('correctness')
         return err.unexpected_error('Correctness')
 
-    license_score = rate.licenseScore(owner,name)
+    license_score = rate.licenseScore(owner, name)
     if license_score is None:
         return err.unexpected_error('LicenseScore')
-    ramp_up = rate.calculate_ramp_up_score(owner,name)
+    ramp_up = rate.calculate_ramp_up_score(owner, name)
 
     if ramp_up is None:
         return err.unexpected_error('RampUp')
@@ -171,7 +171,6 @@ def create():
                    'CodeReviewFractiom': code_review,
                    'NetScore': net_score
                    }
-
 
     for key, values in metric_dict.items():
         if values < 0.5:
@@ -370,7 +369,6 @@ def PackageRetrieve(id):
         return err.malformed_req()
 
 
-
 # Correct: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"URL": "string","JSProgram": "string"}}'
 def PackageUpdate(id):
     ref = db.reference('packages')
@@ -434,7 +432,7 @@ def PackageDelete(id):
             err.missing_fields()
         if id == metadata['ID']:
             id_exists = True
-            del_ref = db.reference('packages/'+firebaseID)
+            del_ref = db.reference('packages/' + firebaseID)
             del_ref.delete()
             break  # What to do if there are multiple packages to be deleted
     if not id_exists:
