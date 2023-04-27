@@ -432,7 +432,7 @@ def PackageDelete(id):
         metadata = p_data['metadata']
         if not metadata:
             err.missing_fields()
-        if id  ==  metadata['ID']:
+        if id == metadata['ID']:
             id_exists = True
             del_ref = db.reference('packages/'+firebaseID)
             del_ref.delete()
