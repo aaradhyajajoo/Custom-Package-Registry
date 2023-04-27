@@ -166,7 +166,7 @@ def licenseScore(owner,repo_name):
             except KeyError:
               license_key = "N/A"
 
-    except:
+    except requests.exceptions.RequestException:
      url = f"https://api.github.com/repos/{owner}/{repo_name}"
      headers = {"Accept": "application/vnd.github.v3+json"}
      res = requests.get(url, headers=headers)
@@ -181,7 +181,7 @@ def licenseScore(owner,repo_name):
         score = CheckCompatibility(license_key)
 
 
-    except:
+    except ValueError:
         score = CheckCompatibility('N/A')
     return score
 

@@ -7,8 +7,9 @@
 
 # Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
-from rate import *
+import rate
 import base64
+import requests
 
 # Error Class
 from errors import Err_Class
@@ -28,7 +29,7 @@ import re
 import gzip
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 5000
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class()  # Errors
@@ -71,24 +72,24 @@ def create():
     if 'URL' in data.keys():
         url = data['URL']
         if 'npm' in url:
-            package_json = get_package_json(url, 'npm')
+            package_json = rate.get_package_json(url, 'npm')
             print(package_json)
             ty = 'npm'
         elif 'github' in url:
-            owner, repo, ty = extract_repo_info(url)
+            owner, repo, ty = rate.extract_repo_info(url)
         else:
             return err.malformed_req()
 
     elif 'Content' in data.keys():
         content = data['Content']
-        url = get_decoded_content(content)
+        url = rate.get_decoded_content(content)
         print(f'URL : {url}')
         if 'npm' in url:
-            package_json = get_package_json(url, 'npm')
+            package_json = rate.get_package_json(url, 'npm')
             print(f'Package json: {package_json}')
             ty = 'npm'
         elif 'github' in url:
-            owner, repo, ty = extract_repo_info(url)
+            owner, repo, ty = rate.extract_repo_info(url)
             print(f'In main: {owner},{repo}')
         else:
             return err.missing_fields()
@@ -100,7 +101,7 @@ def create():
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
         print(f'API URL: {api_url}')
-        package_json = get_package_json(api_url, 'github')
+        package_json = rate.get_package_json(api_url, 'github')
         print(f'Package json: {package_json}')
         if not package_json:
             return err.malformed_req()
@@ -123,16 +124,16 @@ def create():
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
     # Need to check error 424
-    owner, name, ty = extract_repo_info(url)
+    owner, name, ty = rate.extract_repo_info(url)
     if owner is None or name is None or ty is None:
         return err.unexpected_error('the URL') # Error 500 (Did not find owner or repo) marcelklehr,nodist
 
     #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
-    code_review = calculate_review_fraction(owner, name)
+    code_review = rate.calculate_review_fraction(owner, name)
     if code_review is None:
         #print('code review')
         return err.unexpected_error('CodeReviewFractiom')
-    dependency = calculate_dependency_metric(package_json, version)
+    dependency = rate.calculate_dependency_metric(package_json, version)
     if dependency is None:
         #print('dependency')
         return err.unexpected_error('GoodPinningPractice')
@@ -150,10 +151,10 @@ def create():
     if correctness is None:
         #print('correctness')
         return err.unexpected_error('Correctness')
-    license_score = licenseScore(owner,name)
+    license_score = rate.licenseScore(owner,name)
     if license_score is None:
         return err.unexpected_error('LicenseScore')
-    ramp_up = calculate_ramp_up_score(owner,name)
+    ramp_up = rate.calculate_ramp_up_score(owner,name)
     if ramp_up is None:
         return err.unexpected_error('RampUp')
 
@@ -171,7 +172,7 @@ def create():
               'CodeReviewFractiom': code_review,
               'NetScore': net_score
               }
-    
+
     for key, values in metric_dict.items():
         if values < 0.5:
             return err.disqualified_rating(key)
@@ -345,10 +346,10 @@ def PackageRetrieve(id):
         if id == metadata['ID']:
             pack_exists = True
             break
-    
+
     if not pack_exists:
         return err.package_doesNot_exist()
-    
+
     data_field = p_data['data']
     if 'Content' in data_field.keys() and 'URL' not in data_field.keys():
         directory = 'ZipFile_decoded'
@@ -368,7 +369,7 @@ def PackageRetrieve(id):
         return json.dumps(p_data), 200
     else:
         return err.malformed_req()
-        
+
 
 
 
@@ -492,7 +493,7 @@ def metric_rate(id):
         print('Content')
         if content is None:
             return err.missing_fields()
-        url = get_decoded_content(content)
+        url = rate.get_decoded_content(content)
 
     elif 'Content' not in data.keys() and 'URL' in data.keys():
         # Get package URL from package data if it does not contain content
@@ -501,11 +502,11 @@ def metric_rate(id):
             return err.missing_fields()
     # Check if URL is npm or github
     if 'npm' in url:
-            package_json = get_package_json(url, 'npm')
+            package_json = rate.get_package_json(url, 'npm')
             print(f'Package json: {package_json}')
             ty = 'npm'
     elif 'github' in url:
-            owner, repo, ty = extract_repo_info(url)
+            owner, repo, ty = rate.extract_repo_info(url)
     else:
             return err.missing_fields()
 
@@ -516,7 +517,7 @@ def metric_rate(id):
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
          #print(f'API URL: {api_url}')
-        package_json = get_package_json(api_url,'github')
+        package_json = rate.get_package_json(api_url,'github')
         if not package_json:
             return err.malformed_req()
 
@@ -524,16 +525,16 @@ def metric_rate(id):
         if not package_json:
             err.malformed_req()
 
-    owner, name, ty = extract_repo_info(url)
+    owner, name, ty = rate.extract_repo_info(url)
     if owner is None or name is None or ty is None:
         return err.unexpected_error() # Error 500 (Did not find owner or repo)
 
     #  Calculate metrics (5 metrics from Part 1 and 2 new metrics)
-    code_review = calculate_review_fraction(owner, name)
+    code_review = rate.calculate_review_fraction(owner, name)
     if code_review is  None:
         #print('code review')
         return err.unexpected_error()
-    dependency = calculate_dependency_metric(package_json, p_version)
+    dependency = rate.calculate_dependency_metric(package_json, p_version)
     if dependency is None:
         #print('dependency')
         return err.unexpected_error()
@@ -549,10 +550,10 @@ def metric_rate(id):
     if correctness is None:
         #print('correctness')
         return err.unexpected_error()
-    license_score = licenseScore(owner,name)
+    license_score = rate.licenseScore(owner,name)
     if license_score is None:
         return err.unexpected_error()
-    ramp_up = calculate_ramp_up_score(owner,name)
+    ramp_up = rate.calculate_ramp_up_score(owner,name)
     if ramp_up is None:
         return err.unexpected_error()
 
