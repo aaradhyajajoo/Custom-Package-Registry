@@ -3,6 +3,7 @@
 from ECE_461_new import compiledqueries
 from rate import *
 import base64
+import requests
 
 # Error Class
 from errors import Err_Class
@@ -65,24 +66,24 @@ def create():
     if 'URL' in data.keys():
         url = data['URL']
         if 'npm' in url:
-            package_json = get_package_json(url, 'npm')
+            package_json = rate.get_package_json(url, 'npm')
             print(package_json)
             ty = 'npm'
         elif 'github' in url:
-            owner, repo, ty = extract_repo_info(url)
+            owner, repo, ty = rate.extract_repo_info(url)
         else:
             return err.malformed_req()
 
     elif 'Content' in data.keys():
         content = data['Content']
-        url = get_decoded_content(content)
+        url = rate.get_decoded_content(content)
         print(f'URL : {url}')
         if 'npm' in url:
-            package_json = get_package_json(url, 'npm')
+            package_json = rate.get_package_json(url, 'npm')
             print(f'Package json: {package_json}')
             ty = 'npm'
         elif 'github' in url:
-            owner, repo, ty = extract_repo_info(url)
+            owner, repo, ty = rate.extract_repo_info(url)
             print(f'In main: {owner},{repo}')
         else:
             return err.missing_fields()
@@ -93,7 +94,7 @@ def create():
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
         print(f'API URL: {api_url}')
-        package_json = get_package_json(api_url, 'github')
+        package_json = rate.get_package_json(api_url, 'github')
         print(f'Package json: {package_json}')
         if not package_json:
             return err.malformed_req()
@@ -116,17 +117,17 @@ def create():
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
     # Need to check error 424
-    owner, name, ty = extract_repo_info(url)
+    owner, name, ty = rate.extract_repo_info(url)
     if owner is None or name is None or ty is None:
         # Error 500 (Did not find owner or repo) marcelklehr,nodist
         return err.unexpected_error('the URL')
 
     #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
-    code_review = calculate_review_fraction(owner, name)
+    code_review = rate.calculate_review_fraction(owner, name)
     if code_review is None:
         #print('code review')
         return err.unexpected_error('CodeReviewFractiom')
-    dependency = calculate_dependency_metric(package_json, version)
+    dependency = rate.calculate_dependency_metric(package_json, version)
     if dependency is None:
         # print('dependency')
         return err.unexpected_error('GoodPinningPractice')
@@ -144,10 +145,12 @@ def create():
     if correctness is None:
         # print('correctness')
         return err.unexpected_error('Correctness')
-    license_score = licenseScore(owner, name)
+
+    license_score = rate.licenseScore(owner,name)
     if license_score is None:
         return err.unexpected_error('LicenseScore')
-    ramp_up = calculate_ramp_up_score(owner, name)
+    ramp_up = rate.calculate_ramp_up_score(owner,name)
+
     if ramp_up is None:
         return err.unexpected_error('RampUp')
 
@@ -159,6 +162,7 @@ def create():
 
     metric_dict = {}
     metric_dict = {'BusFactor': bus_factor,
+
                    'Correctness': correctness,
                    'RampUp': ramp_up,
                    'Responsiveness': responsiveness,
@@ -167,6 +171,7 @@ def create():
                    'CodeReviewFractiom': code_review,
                    'NetScore': net_score
                    }
+
 
     for key, values in metric_dict.items():
         if values < 0.5:
@@ -365,6 +370,7 @@ def PackageRetrieve(id):
         return err.malformed_req()
 
 
+
 # Correct: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"URL": "string","JSProgram": "string"}}'
 def PackageUpdate(id):
     ref = db.reference('packages')
@@ -485,7 +491,7 @@ def metric_rate(id):
         print('Content')
         if content is None:
             return err.missing_fields()
-        url = get_decoded_content(content)
+        url = rate.get_decoded_content(content)
 
     elif 'Content' not in data.keys() and 'URL' in data.keys():
         # Get package URL from package data if it does not contain content
@@ -499,6 +505,7 @@ def metric_rate(id):
         ty = 'npm'
     elif 'github' in url:
         owner, repo, ty = extract_repo_info(url)
+
     else:
         return err.missing_fields()
 
@@ -509,6 +516,7 @@ def metric_rate(id):
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
         #print(f'API URL: {api_url}')
         package_json = get_package_json(api_url, 'github')
+
         if not package_json:
             return err.malformed_req()
 
@@ -516,16 +524,18 @@ def metric_rate(id):
         if not package_json:
             err.malformed_req()
 
-    owner, name, ty = extract_repo_info(url)
+    owner, name, ty = rate.extract_repo_info(url)
     if owner is None or name is None or ty is None:
         return err.unexpected_error()  # Error 500 (Did not find owner or repo)
 
     #  Calculate metrics (5 metrics from Part 1 and 2 new metrics)
+
     code_review = calculate_review_fraction(owner, name)
     if code_review is None:
+
         #print('code review')
         return err.unexpected_error()
-    dependency = calculate_dependency_metric(package_json, p_version)
+    dependency = rate.calculate_dependency_metric(package_json, p_version)
     if dependency is None:
         # print('dependency')
         return err.unexpected_error()
@@ -545,6 +555,7 @@ def metric_rate(id):
     if license_score is None:
         return err.unexpected_error()
     ramp_up = calculate_ramp_up_score(owner, name)
+
     if ramp_up is None:
         return err.unexpected_error()
 
