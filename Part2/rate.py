@@ -167,27 +167,21 @@ def licenseScore(owner, repo_name):
             except KeyError:
                 license_key = "N/A"
 
-    except requests.exceptions.RequestException:
+    except: requests.exceptions.RequestException:
      url = f"https://api.github.com/repos/{owner}/{repo_name}"
      headers = {"Accept": "application/vnd.github.v3+json"}
      res = requests.get(url, headers=headers)
      data = res.json()
      license_info = data["license"]
      license_key = license_info["key"]
-    except:
-        url = f"https://api.github.com/repos/{owner}/{repo_name}"
-        headers = {"Accept": "application/vnd.github.v3+json"}
-        res = requests.get(url, headers=headers)
-        data = res.json()
-        license_info = data["license"]
-        license_key = license_info["key"]
+
 
     # These are set for outputting to the file that the final Python file reads
 
     try:
         score = CheckCompatibility(license_key)
 
-    except:
+    except ValueError:
         score = CheckCompatibility('N/A')
     return score
 
