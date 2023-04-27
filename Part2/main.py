@@ -1,10 +1,4 @@
 '''Import Statements'''
-
-# Restler Testing
-# from restler import Restler
-# restler = Restler(api_spec_file='Spec.yaml')
-# app = restler.instrument(app)
-
 # Part 1  (inherited codebase)
 from ECE_461_new import compiledqueries
 from rate import *
@@ -28,7 +22,7 @@ import re
 import gzip
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 5000
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class()  # Errors
