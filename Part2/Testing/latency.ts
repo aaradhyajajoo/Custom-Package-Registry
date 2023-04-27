@@ -1,11 +1,19 @@
 import { spawn } from 'child_process';
 
+//  list of simultanious commands to run
 const commands = ['bash lattest.sh','bash lattest.sh','bash lattest.sh','bash lattest.sh','bash lattest.sh'];
+
 console.log('Latency details for “many clients download lodash”:');
+
+//  kep track of when each thread begins its tasks
 const start_times = {};
+
+//  initiate total runtime list
 var end_times = [0, 0, 0, 0, 0];
+
+//  task for each thread
 const promises = commands.map((command, index) => {
-  //console.log('A\n') // delete later, just proof this is parralel
+  //console.log('A\n') // uncomment to prove that processes are happening simultaniously, just proof this is parralel
   const start_time = Date.now();
   start_times[index] = start_time;
 
@@ -25,14 +33,17 @@ const promises = commands.map((command, index) => {
       reject(err);
     });
   });
+  //console.log('B\n') // uncomment to prove that processes are happening simultaniously, just proof this is parralel
 });
 
+//  get the mean of an array
 function MEAN(array) {  
   const sum = array.reduce((acc, value) => acc + value, 0);
   const mean = sum / array.length;
   return mean;
 }
 
+//  get the median of an array
 function MEDIAN(array) {
   const array_ = array.sort((x, y) => x - y);
   const ind = Math.floor(array_.length / 2);
@@ -46,6 +57,7 @@ function MEDIAN(array) {
   }
 }
 
+//  get the 99th percentile of an array
 function P99(array) {
   const array_ = array.sort((x, y) => y-x);
   return array_[0];
