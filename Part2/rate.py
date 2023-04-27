@@ -1,7 +1,6 @@
 ''' Import Statements '''
 import zipfile
 import re
-import os
 import tempfile
 import requests
 import binascii

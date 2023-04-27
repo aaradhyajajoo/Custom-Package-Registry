@@ -42,7 +42,7 @@ bad_creds = False
 # POST Package Create and POST Package Ingest
 
 
-@app.route('/package', methods=['POST'])
+@app.route('/package', methods = ['POST'])
 def create():
 
     # Checks Authorization
