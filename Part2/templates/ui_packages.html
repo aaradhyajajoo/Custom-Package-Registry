@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>JSON Metadata for Package</title>
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label,
+        input {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>JSON Metadata for Package</h1>
+    <form action="/ui/packages_render" method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+
+        <label for="version">Version:</label>
+        <input type="text" id="version" name="version" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+
+    <!-- accessibility features -->
+    <script>
+        const labels = document.getElementsByTagName('label');
+        Array.from(labels).forEach(label => {
+            const inputId = label.getAttribute('for');
+            const input = document.getElementById(inputId);
+            if (input) {
+                label.setAttribute('aria-label', label.innerText);
+                label.innerText = '';
+                input.setAttribute('aria-labelledby', inputId);
+            }
+        });
+    </script>
+</body>
+
+</html>
