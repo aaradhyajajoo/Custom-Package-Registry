@@ -2,7 +2,7 @@ import requests
 from datetime import date
 import os
 
-token = ""
+token2 = ""
 # https://github.com/octocat/Hello-World
 token = ""
 

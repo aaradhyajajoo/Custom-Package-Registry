@@ -137,7 +137,6 @@ def get_package_json(package_url, ty):
         # return response.text
 
     elif ty == 'github':
-        print(package_url)
         response = requests.get(package_url)
         package_json = response.json()
         if package_json and 'content' not in package_json.keys():
@@ -155,7 +154,7 @@ def licenseScore(owner, repo_name):
         # Check if it is an npm package
         response = requests.get(f"https://registry.npmjs.org/{repo_name}")
         if response.status_code == 200:
-            data = response.json
+            data = response.json()
             try:
                 license_key = data["versions"][data["dist-tags"]
                                                ["latest"]]["license"]

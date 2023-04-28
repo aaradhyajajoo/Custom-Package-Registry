@@ -158,7 +158,7 @@ def create():
 
     net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness,
                        ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
-    if not net_score:
+    if net_score is None:
         # Calculations for metrics choked
         return err.unexpected_error('NetScore')
 
