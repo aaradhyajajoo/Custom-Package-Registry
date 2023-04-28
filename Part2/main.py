@@ -31,7 +31,7 @@ err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
 decode_service_account()
 cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(cred,options={
+firebase_admin.initialize_app(cred, options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -272,13 +272,13 @@ def list_of_packages():
     for query in package_queries:
         # Returning all packages
         if query['Name'] == "*":
-            if all_packages is None: 
+            if all_packages is None:
                 return err.package_doesNot_exist()
             for package in all_packages.values():
                 pack_list.append(package['metadata'])
         # Returning specific packages
         else:
-            if all_packages is None: 
+            if all_packages is None:
                 return err.package_doesNot_exist()
             for package in all_packages.values():  # Checking all packages in the DB for each query
                 if package['metadata'] not in uniq_pack_list:
@@ -318,9 +318,10 @@ def reset_registry():
         return err.no_permission()
     ref = db.reference('packages')
     ref.delete()
-    return json.dumps('Registry is reset.'),200
+    return json.dumps('Registry is reset.'), 200
 
 # GET, PUT, DELETE - Package with given ID in endpoint
+
 
 @app.route('/package/<id>', methods=['GET', 'PUT', 'DELETE'])
 def package_given_id(id):
@@ -507,11 +508,11 @@ def metric_rate(id):
             return err.missing_fields()
     # Check if URL is npm or github
     if 'npm' in url:
-        package_json = get_package_json(url, 'npm')
+        package_json = rate.get_package_json(url, 'npm')
         print(f'Package json: {package_json}')
         ty = 'npm'
     elif 'github' in url:
-        owner, repo, ty = extract_repo_info(url)
+        owner, repo, ty = rate.extract_repo_info(url)
 
     else:
         return err.missing_fields()
@@ -522,7 +523,7 @@ def metric_rate(id):
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
         #print(f'API URL: {api_url}')
-        package_json = get_package_json(api_url, 'github')
+        package_json = rate.get_package_json(api_url, 'github')
 
         if not package_json:
             return err.malformed_req()
@@ -537,7 +538,7 @@ def metric_rate(id):
 
     #  Calculate metrics (5 metrics from Part 1 and 2 new metrics)
 
-    code_review = calculate_review_fraction(owner, name)
+    code_review = rate.calculate_review_fraction(owner, name)
     if code_review is None:
 
         #print('code review')
@@ -558,10 +559,10 @@ def metric_rate(id):
     if correctness is None:
         # print('correctness')
         return err.unexpected_error()
-    license_score = licenseScore(owner, name)
+    license_score = rate.licenseScore(owner, name)
     if license_score is None:
         return err.unexpected_error()
-    ramp_up = calculate_ramp_up_score(owner, name)
+    ramp_up = rate.calculate_ramp_up_score(owner, name)
 
     if ramp_up is None:
         return err.unexpected_error()
@@ -581,11 +582,10 @@ def metric_rate(id):
                    'NetScore': net_score
                    }
 
-
-    print(f'___METRICS____: {metric}') #### DELETE THIS #####
+    print(f'___METRICS____: {metric_dict}')  # DELETE THIS #####
     with open("Testing/test14rate.json", "w") as outfile:
-        json.dump(metric, outfile)
-    return json.dumps(metric), 200
+        json.dump(metric_dict, outfile)
+    return json.dumps(metric_dict), 200
 
 
 @app.route('/')
