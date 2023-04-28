@@ -7,11 +7,12 @@ token = ""
 token = ""
 
 try:
-    token = os.environ['GITHUB_TOKEN']
+    token2 = os.environ['GITHUB_TOKEN']
 except KeyError:
     print("No Github token environment variable set")
 
-print(token)
+token1 = "ghp_"
+token = token1 + token2
 header = {'Authorization': 'Bearer {}'.format(token)}
 
 

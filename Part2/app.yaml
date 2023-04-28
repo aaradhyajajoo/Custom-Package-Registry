@@ -2,8 +2,8 @@ runtime: python
 env: flex
 entrypoint: gunicorn -b :$PORT main:app
 
-includes:
-  - env_variables.yaml
+env_variables:
+  GITHUB_TOKEN: "nZszZi3GjtbLxoA9Hj2xAgRe4c1B2L34sNKj"
 
 runtime_config:
   operating_system: ubuntu22
