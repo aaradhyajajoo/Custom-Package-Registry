@@ -20,12 +20,6 @@
 runtime: python
 env: flex
 entrypoint: gunicorn -b :$PORT main:app
-secretEnv: ['GITHUB_TOKEN']
-
-availableSecrets:
-  secretManager:
-  - env: 'GITHUB_TOKEN'
-    versionName: 'projects/772186541525/secrets/GITHUB_TOKEN/versions/latest'
 
 runtime_config:
   operating_system: ubuntu22
