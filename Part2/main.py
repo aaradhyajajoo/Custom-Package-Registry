@@ -3,6 +3,7 @@
 from ECE_461_new import compiledqueries
 import rate
 import base64
+import regex
 from datetime import datetime
 import random
 import requests
@@ -59,13 +60,14 @@ def create():
     # Checking error 404
     if not data:
         if 'URL' not in data.keys() and 'Content' not in data.keys():
-            print('here')
             return err.missing_fields()
 
+    url_check = False
     # URL examples
     # url = "https://github.com/jashkenas/underscore"
     # url = "https://www.npmjs.com/package/browserify"
     if 'URL' in data.keys():
+        url_check = True
         url = data['URL']
         if 'npm' in url:
             package_json = rate.get_package_json(url, 'npm')
@@ -118,65 +120,67 @@ def create():
     data_field = data
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
-    # Need to check error 424
-    owner, name, ty = rate.extract_repo_info(url)
-    if owner is None or name is None or ty is None:
-        # Error 500 (Did not find owner or repo) marcelklehr,nodist
-        return err.unexpected_error('the URL')
+    if url_check:
+        # Need to check error 424
+        owner, name, ty = rate.extract_repo_info(url)
+        if owner is None or name is None or ty is None:
+            # Error 500 (Did not find owner or repo) marcelklehr,nodist
+            return err.unexpected_error('the URL')
 
-    #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
-    code_review = rate.calculate_review_fraction(owner, name)
-    if code_review is None:
-        #print('code review')
-        return err.unexpected_error('CodeReviewFractiom')
-    dependency = rate.calculate_dependency_metric(package_json, version)
-    if dependency is None:
-        # print('dependency')
-        return err.unexpected_error('GoodPinningPractice')
-    bus_factor = compiledqueries.getBusFactorScore(owner, name)
-    if bus_factor is None:
-        #('bus factor')
-        return err.unexpected_error('BusFactor')
-    elif bus_factor == -1:
-        return err.auth_failure(True)
-    responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
-    if responsiveness is None:
-        # print('responsiveness')
-        return err.unexpected_error('Responsiveness')
-    correctness = compiledqueries.getCorrectnessScore(owner, name)
-    if correctness is None:
-        # print('correctness')
-        return err.unexpected_error('Correctness')
+        #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
+        code_review = rate.calculate_review_fraction(owner, name)
+        if code_review is None:
+            #print('code review')
+            return err.unexpected_error('CodeReviewFractiom')
+        dependency = rate.calculate_dependency_metric(package_json, version)
+        if dependency is None:
+            # print('dependency')
+            return err.unexpected_error('GoodPinningPractice')
+        bus_factor = compiledqueries.getBusFactorScore(owner, name)
+        if bus_factor is None:
+            #('bus factor')
+            return err.unexpected_error('BusFactor')
+        elif bus_factor == -1:
+            print(f'bus factor')
+            return err.auth_failure(True)
+        responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+        if responsiveness is None:
+            # print('responsiveness')
+            return err.unexpected_error('Responsiveness')
+        correctness = compiledqueries.getCorrectnessScore(owner, name)
+        if correctness is None:
+            # print('correctness')
+            return err.unexpected_error('Correctness')
 
-    license_score = rate.licenseScore(owner, name)
-    if license_score is None:
-        return err.unexpected_error('LicenseScore')
-    ramp_up = rate.calculate_ramp_up_score(owner, name)
+        license_score = rate.licenseScore(owner, name)
+        if license_score is None:
+            return err.unexpected_error('LicenseScore')
+        ramp_up = rate.calculate_ramp_up_score(owner, name)
 
-    if ramp_up is None:
-        return err.unexpected_error('RampUp')
+        if ramp_up is None:
+            return err.unexpected_error('RampUp')
 
-    net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness,
-                       ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
-    if net_score is None:
-        # Calculations for metrics choked
-        return err.unexpected_error('NetScore')
+        net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness,
+                        ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
+        if net_score is None:
+            # Calculations for metrics choked
+            return err.unexpected_error('NetScore')
 
-    metric_dict = {}
-    metric_dict = {'BusFactor': bus_factor,
+        metric_dict = {}
+        metric_dict = {'BusFactor': bus_factor,
 
-                   'Correctness': correctness,
-                   'RampUp': ramp_up,
-                   'Responsiveness': responsiveness,
-                   'LicenseScore': license_score,
-                   'GoodPinningPractice': dependency,
-                   'CodeReviewFractiom': code_review,
-                   'NetScore': net_score
-                   }
+                    'Correctness': correctness,
+                    'RampUp': ramp_up,
+                    'Responsiveness': responsiveness,
+                    'LicenseScore': license_score,
+                    'GoodPinningPractice': dependency,
+                    'CodeReviewFractiom': code_review,
+                    'NetScore': net_score
+                    }
 
-    for key, values in metric_dict.items():
-        if values < 0.5:
-            return err.disqualified_rating(key)
+        for key, values in metric_dict.items():
+            if values < 0.5:
+                return err.disqualified_rating(key)
 
     package = {
         'metadata': metadata,
@@ -204,7 +208,7 @@ def create():
             unique_name_list.append(json_store[ids]['metadata']['Name'])
 
         # print(f'Unique id list = {unique_id_list}')
-        if ID in unique_id_list and version not in unique_version_list and name not in unique_name_list:
+        if ID in unique_id_list:
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
             firebaseID = firebaseIDs_list[i]  # Gets firebase ID
@@ -601,19 +605,26 @@ def authenticate():
 @app.route('/package/byRegEx', methods=['POST'])
 def package_by_regex():
     # format the regex to make it compatible with code.
+
     regex = request.json
     regex_pattern = regex['RegEx']
     if not regex_pattern:
         return err.missing_fields()
 
+    ref = db.reference('packages')
+    all_packages = ref.get()
+
+    if all_packages is None:
+        return err.package_doesNot_exist()
+
     # get the packages from the regex
-    matched_packages = search_packages_by_regex(regex_pattern)
+    matched_packages = regex.search_packages_by_regex(regex_pattern,all_packages)
 
     # Checking error 404
     if len(matched_packages) == 0:
         return err.package_doesNot_exist()
 
-    print(f'm_p = {matched_packages}')
+    # print(f'm_p = {matched_packages}')
 
     # JSON format
     response = []
@@ -627,29 +638,7 @@ def package_by_regex():
     return json.dumps(response), 200
 
 
-def search_packages_by_regex(regex_pattern):
-    # Implement the search logic that uses the regular expression pattern
-    packages = []
 
-    ref = db.reference('packages')
-    all_packages = ref.get()
-
-    if all_packages is None:
-        return err.package_doesNot_exist()
-
-    for firebaseID, p_data in all_packages.items():
-        metadata = p_data['metadata']
-        packages.append(metadata)
-
-    count = 0
-    matched_packages = []
-    for package in packages:
-        # Also subject to change based of structure. For now this is based off of structure
-        if re.search(regex_pattern, package['Name']):
-            matched_packages.append(package)
-            count += 1
-
-    return matched_packages
 
 
 @app.route('/ui/package', methods=['GET', 'POST'])

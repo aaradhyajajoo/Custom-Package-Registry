@@ -1,12 +1,16 @@
 "use strict";
 exports.__esModule = true;
 var child_process_1 = require("child_process");
+//  list of simultanious commands to run
 var commands = ['bash lattest.sh', 'bash lattest.sh', 'bash lattest.sh', 'bash lattest.sh', 'bash lattest.sh'];
 console.log('Latency details for “many clients download lodash”:');
+//  kep track of when each thread begins its tasks
 var start_times = {};
+//  initiate total runtime list
 var end_times = [0, 0, 0, 0, 0];
+//  task for each thread
 var promises = commands.map(function (command, index) {
-    //console.log('A\n') // delete later, just proof this is parralel
+    //console.log('A\n') // uncomment to prove that processes are happening simultaniously, just proof this is parralel
     var start_time = Date.now();
     start_times[index] = start_time;
     return new Promise(function (resolve, reject) {
@@ -22,12 +26,15 @@ var promises = commands.map(function (command, index) {
             reject(err);
         });
     });
+    //console.log('B\n') // uncomment to prove that processes are happening simultaniously, just proof this is parralel
 });
+//  get the mean of an array
 function MEAN(array) {
     var sum = array.reduce(function (acc, value) { return acc + value; }, 0);
     var mean = sum / array.length;
     return mean;
 }
+//  get the median of an array
 function MEDIAN(array) {
     var array_ = array.sort(function (x, y) { return x - y; });
     var ind = Math.floor(array_.length / 2);
@@ -40,6 +47,7 @@ function MEDIAN(array) {
         return median;
     }
 }
+//  get the 99th percentile of an array
 function P99(array) {
     var array_ = array.sort(function (x, y) { return y - x; });
     return array_[0];

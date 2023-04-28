@@ -139,6 +139,7 @@ def get_package_json(package_url, ty):
     elif ty == 'github':
         response = requests.get(package_url)
         package_json = response.json()
+        print(f'response for github in rate = {package_json}')
         if package_json and 'content' not in package_json.keys():
             return None
         file_contents = package_json['content']
@@ -149,7 +150,6 @@ def get_package_json(package_url, ty):
 
 
 def licenseScore(owner, repo_name):
-
     try:
         # Check if it is an npm package
         response = requests.get(f"https://registry.npmjs.org/{repo_name}")
@@ -163,9 +163,11 @@ def licenseScore(owner, repo_name):
                 license_key = "N/A"
 
     except requests.exceptions.RequestException:
+        print('Here')
         url = f"https://api.github.com/repos/{owner}/{repo_name}"
         headers = {"Accept": "application/vnd.github.v3+json"}
         res = requests.get(url, headers=headers)
+        print(f'res = {res}')
         data = res.json()
         license_info = data["license"]
         license_key = license_info["key"]

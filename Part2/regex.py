@@ -23,18 +23,20 @@ def package_by_regex():
     # Return the response as the HTTP response body with 200 status code
     return {'packages': response}, 200
 
-def search_packages_by_regex(regex_pattern):
+def search_packages_by_regex(regex_pattern, all_packages):
     # Implement the search logic that uses the regular expression pattern
-    packages = [
-        #Not really sure of package structure, can change later. Below is an example
-        {'name': '...'},
-    ]
+    packages = []
 
+    for firebaseID, p_data in all_packages.items():
+        metadata = p_data['metadata']
+        packages.append(metadata)
+
+    count = 0
     matched_packages = []
     for package in packages:
-        #Also subjest to change based of structure. For now this is based off of structure
-        if re.search(regex_pattern, package['name']):
+        # Also subject to change based of structure. For now this is based off of structure
+        if re.search(regex_pattern, package['Name']):
             matched_packages.append(package)
+            count += 1
 
     return matched_packages
-
