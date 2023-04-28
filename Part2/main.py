@@ -24,14 +24,14 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8080
+PORT_NUMBER = 8081
 
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-# decode_service_account()
-# cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(options={
+decode_service_account()
+cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(cred,options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -272,10 +272,14 @@ def list_of_packages():
     for query in package_queries:
         # Returning all packages
         if query['Name'] == "*":
+            if all_packages is None: 
+                return err.package_doesNot_exist()
             for package in all_packages.values():
                 pack_list.append(package['metadata'])
         # Returning specific packages
         else:
+            if all_packages is None: 
+                return err.package_doesNot_exist()
             for package in all_packages.values():  # Checking all packages in the DB for each query
                 if package['metadata'] not in uniq_pack_list:
                     if query['Name'] == package['metadata']['Name'] and query['Version'] == package['metadata']['Version']:

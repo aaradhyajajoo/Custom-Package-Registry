@@ -1,5 +1,5 @@
 curl -X 'POST' \
-  'http://127.0.0.1:5000/packages' \
+  'http://ece-461-ae1a9.uc.r.appspot.com/packages' \
   -H 'accept: application/json' \
   -H 'X-Authorization: RANDOM' \
   -H 'Content-Type: application/json' \

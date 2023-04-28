@@ -22,7 +22,19 @@ jobs:
           autopep8 Part2/ --recursive --in-place
           cd Part2/
           flake8 --exclude=ECE_461-1/ --max-line-length=460 --ignore=F401,E501,F841,F405,F403 .
-      - name: Running Test Suite
+      - name: getting requirements.txt
         run: |
           cd Part2/
           pip install -r requirements.txt
+      - name: get ts-jest
+        run: | 
+          npm install --save-dev jest @types/jest
+      - name: get npx
+        run: |
+          npm install -g npm
+      - name: run test suite
+        run: |
+          cd Part2/Testing/
+          npx jest test_apis.test.ts
+
+

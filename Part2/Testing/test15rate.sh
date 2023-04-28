@@ -1,3 +1,3 @@
 curl -X 'GET' \
-  'http://127.0.0.1:5000/package/nodist_0.9.1/rate' \
+  'http://ece-461-ae1a9.uc.r.appspot.com/nodist_0.9.1/rate' \
   -H 'accept: application/json' \
