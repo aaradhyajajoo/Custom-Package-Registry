@@ -20,7 +20,6 @@ from firestore import decode_service_account
 import re
 
 # Package Endpoint
-import gzip
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
 PORT_NUMBER = 8080
