@@ -11,6 +11,7 @@ try:
 except KeyError:
     print("No Github token environment variable set")
 
+print(token)
 header = {'Authorization': 'Bearer {}'.format(token)}
 
 
@@ -49,11 +50,16 @@ def getBusFactorScore(owner, name):
     # req=requests.get(url='https://api.github.com/graphql', auth=(username,token)) headers=header
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
-    
+
     if req is None:
         return None
     result = req.json()
-    if result['data']['repository'] == None:
+    # print(f'result = {result}')
+    if 'message' in result.keys():
+        if result['message'] == 'Bad credentials':
+            return -1
+
+    if result['data']['repository'] is None:
         return 0
     numContributors = result['data']['repository']['mentionableUsers']['totalCount']
     if numContributors >= 5:
@@ -82,7 +88,7 @@ def getCorrectnessScore(owner, name):
     result = req.json()
     if not result:
         return None
-    if result['data']['repository'] == None:
+    if result['data']['repository'] is None:
         return 0
     number_of_stars = result['data']['repository']['stargazerCount']
 
@@ -125,7 +131,7 @@ def getResponsiveMaintainersScore(owner, name):
     result = req.json()
     if not result:
         return None
-    if result['data']['repository'] == None or result['data']['repository']['ref'] == None:
+    if result['data']['repository'] is None or result['data']['repository']['ref'] is None:
         return 0
     numCommits = result['data']['repository']['ref']['target']['history']['totalCount']
     rm_score = 0
