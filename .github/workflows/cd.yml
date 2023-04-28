@@ -38,8 +38,8 @@ jobs:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         credentials: ${{ secrets.GCP_SA_KEY }}
     
-    secretEnv: ['GITHUB_TOKEN']
-    availableSecrets:
-      secretManager:
-      - env: 'GITHUB_TOKEN'
-        versionName: 'projects/772186541525/secrets/GITHUB_TOKEN/versions/latest'
+      secretEnv: ['GITHUB_TOKEN']
+      availableSecrets:
+        secretManager:
+        - env: 'GITHUB_TOKEN'
+          versionName: 'projects/772186541525/secrets/GITHUB_TOKEN/versions/latest'
