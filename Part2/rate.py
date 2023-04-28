@@ -162,8 +162,7 @@ def licenseScore(owner, repo_name):
         if response.status_code == 200:
             data = response.json
             try:
-                license_key = data["versions"][data["dist-tags"]
-                                               ["latest"]]["license"]
+                license_key = data["versions"][data["dist-tags"]["latest"]]["license"]
 
             except KeyError:
                 license_key = "N/A"
