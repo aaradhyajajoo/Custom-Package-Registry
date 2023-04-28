@@ -11,6 +11,7 @@ try:
 except KeyError:
     print("No Github token environment variable set")
 
+print(token)
 header = {'Authorization': 'Bearer {}'.format(token)}
 
 

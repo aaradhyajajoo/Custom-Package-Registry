@@ -26,7 +26,7 @@ runtime_config:
   runtime_version: "3.10"
 
 env_variables:
-  GITHUB_TOKEN: ${{secret.TOKEN}}
+  GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
 resources:
   cpu: 1
