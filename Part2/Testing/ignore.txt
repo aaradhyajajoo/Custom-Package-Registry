@@ -1,0 +1,8 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   285  100   285    0     0  15293      0 --:--:-- --:--:-- --:--:-- 15833
+<!doctype html>
+<html lang=en>
+<title>Redirecting...</title>
+<h1>Redirecting...</h1>
+<p>You should be redirected automatically to the target URL: <a href="http://127.0.0.1:50002/package/nodist_0.9.1/rate/">http://127.0.0.1:50002/package/nodist_0.9.1/rate/</a>. If not, click the link.

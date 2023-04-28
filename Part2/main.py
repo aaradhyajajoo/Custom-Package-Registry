@@ -3,6 +3,8 @@
 from ECE_461_new import compiledqueries
 import rate
 import base64
+from datetime import datetime
+import random
 import requests
 
 # Error Class
@@ -57,6 +59,7 @@ def create():
     # Checking error 404
     if not data:
         if 'URL' not in data.keys() and 'Content' not in data.keys():
+            print('here')
             return err.missing_fields()
 
     # URL examples
@@ -302,7 +305,7 @@ def list_of_packages():
 # DELETE Reset Registry
 
 
-@app.route('/reset/', methods=['DELETE'])
+@app.route('/reset', methods=['DELETE'])
 def reset_registry():
     # Checks Authorization
     authorization = None
@@ -311,7 +314,7 @@ def reset_registry():
         return err.no_permission()
     ref = db.reference('packages')
     ref.delete()
-
+    return json.dumps('Registry is reset.'),200
 
 # GET, PUT, DELETE - Package with given ID in endpoint
 
@@ -349,7 +352,7 @@ def PackageRetrieve(id):
 
     data_field = p_data['data']
     if 'Content' in data_field.keys() and 'URL' not in data_field.keys():
-        directory = 'ZipFile_decoded'
+        directory = f'ZipFile_decoded_{datetime.now().strftime("%H_%M_%S")}_{random.randint(0, 1000)}'
         content = data_field['Content']
 
         try:
@@ -447,8 +450,11 @@ def metric_rate(id):
     authorization = None
     authorization = request.headers.get("X-Authorization")
     # print(f'req = {request}')
-    # if authorization is None:
-    #     return err.auth_failure()
+    print(f"_____{authorization}")
+    if authorization is None:
+        with open("Testing/test14rate.json", "w") as outfile:
+            json.dump({"message": "Authentication failed."}, outfile)
+        return err.auth_failure()
 
     # Get package data from Firebase
     check_package = False
@@ -571,7 +577,11 @@ def metric_rate(id):
                    'NetScore': net_score
                    }
 
-    return json.dumps(metric_dict), 200
+
+    print(f'___METRICS____: {metric}') #### DELETE THIS #####
+    with open("Testing/test14rate.json", "w") as outfile:
+        json.dump(metric, outfile)
+    return json.dumps(metric), 200
 
 
 @app.route('/')
@@ -584,7 +594,7 @@ def authenticate():
     return err.no_authentication()
 
 
-@app.route('/package/byRegEx/', methods=['POST'])
+@app.route('/package/byRegEx', methods=['POST'])
 def package_by_regex():
     # format the regex to make it compatible with code.
     regex = request.json
@@ -619,6 +629,9 @@ def search_packages_by_regex(regex_pattern):
 
     ref = db.reference('packages')
     all_packages = ref.get()
+
+    if all_packages is None:
+        return err.package_doesNot_exist()
 
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
