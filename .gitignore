@@ -5,3 +5,4 @@ env_variables
 server.log
 nohup.out
 service_account.json
+env_variables.yaml
