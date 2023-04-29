@@ -187,7 +187,7 @@ test('rate, success', () => {
   expect(dic).toHaveProperty("Responsiveness")
   expect(dic).toHaveProperty("LicenseScore")
   expect(dic).toHaveProperty("GoodPinningPractice")
-  expect(dic).toHaveProperty("PullRequest")
+  expect(dic).toHaveProperty("RampUp")
   expect(dic).toHaveProperty("NetScore")
   expect(Object.keys(dic).length).toBe(8);
 });
