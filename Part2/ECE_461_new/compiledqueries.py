@@ -45,8 +45,8 @@ def getBusFactorScore(owner, name):
     owner = '"' + f"{owner}" + '"'
     name = '"' + f"{name}" + '"'
 
-    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})\n" + \
-        "\t{ mentionableUsers{\n\ttotalCount\n}\n}\n}"
+    query1 = "query { \n\t repository(owner: " + owner + ", name: " + name + \
+        "){\n\t\t mentionableUsers(first: 100) {\n\t\t\t totalCount\n\t\t}\n\t}\n}"
 
     # req=requests.get(url='https://api.github.com/graphql', auth=(username,token)) headers=header
     req = requests.post(url='https://api.github.com/graphql',
