@@ -32,7 +32,7 @@ PORT_NUMBER = 80800
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-##decode_service_account()
+#decode_service_account()
 #cred = credentials.Certificate("service_account.json")
 #firebase_admin.initialize_app(cred,options={
 firebase_admin.initialize_app(options={
@@ -365,14 +365,17 @@ def PackageRetrieve(id):
         content = data_field['Content']
 
         try:
+            print("DECODING CONTENT")
             decoded_content = base64.b64decode(content)
         except binascii.Error:
             return err.malformed_req()
 
         if not os.path.exists(directory):
+            print("MAKING DIRECTORY")
             os.makedirs(directory)
 
         with open(os.path.join(directory, 'package.zip'), 'wb') as zip_file:
+            print("WRITE INTO FILE")
             zip_file.write(decoded_content)
 
         return json.dumps(p_data), 200

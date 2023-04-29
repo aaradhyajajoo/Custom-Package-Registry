@@ -249,7 +249,7 @@ test('POST packages, package DNE', () => {
 test('GET ID, Download', () => {
   const curlCommand = "bash clean.sh"
   //const curlCommand1 = 'bash test1package.sh'
-  const curlCommand2 = 'bash test7ID.sh'
+  const curlCommand2 = 'bash test7id.sh'
   const curlCommand3 = 'diff package.zip ../Zip*/pack*'
   const process0 = spawnSync(curlCommand, { shell: true });
   //const process1 = spawnSync(curlCommand1, { shell: true });
@@ -261,7 +261,7 @@ test('GET ID, Download', () => {
 
 
 // checks for metric disqualified
-test('POST package, metric choke', () => {
+test('POST package, metric disqualified', () => {
   const curlCommand1 = 'bash test22package.sh'
   const process = spawnSync(curlCommand1, { shell: true });
   const output = process.stdout?.toString();
@@ -280,4 +280,12 @@ test('POST package, URL version success', () => {
   expect(response).not.toEqual(expectedJson);
 });
 
+test('POST package, metric choke', () => {
+  const curlCommand1 = 'bash test23package.sh'
+  const process = spawnSync(curlCommand1, { shell: true });
+  const output = process.stdout?.toString();
+  const response = JSON.parse(output || '');
+  const expected = {"message":"Package is not uploaded due to the disqualified rating for Responsiveness."}
+  expect(response).toEqual(expected);
+});
 
