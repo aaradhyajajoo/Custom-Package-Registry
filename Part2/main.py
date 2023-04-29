@@ -32,7 +32,7 @@ PORT_NUMBER = 80800
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-#decode_service_account()
+##decode_service_account()
 #cred = credentials.Certificate("service_account.json")
 #firebase_admin.initialize_app(cred,options={
 firebase_admin.initialize_app(options={
