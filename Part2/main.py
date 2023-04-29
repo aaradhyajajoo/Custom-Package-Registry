@@ -551,30 +551,23 @@ def metric_rate(id):
 
     code_review = rate.calculate_review_fraction(owner, name)
     if code_review is None:
-
-        # print('code review')
         return err.unexpected_error()
     dependency = rate.calculate_dependency_metric(package_json, p_version)
     if dependency is None:
-        # print('dependency')
         return err.unexpected_error()
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     if bus_factor is None:
-        # ('bus factor')
         return err.unexpected_error()
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
     if responsiveness is None:
-        # print('responsiveness')
         return err.unexpected_error()
     correctness = compiledqueries.getCorrectnessScore(owner, name)
     if correctness is None:
-        # print('correctness')
         return err.unexpected_error()
     license_score = rate.licenseScore(owner, name)
     if license_score is None:
         return err.unexpected_error()
     ramp_up = rate.calculate_ramp_up_score(owner, name)
-
     if ramp_up is None:
         return err.unexpected_error()
 

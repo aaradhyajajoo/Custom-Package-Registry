@@ -97,11 +97,6 @@ def calculate_review_fraction(owner, repo):
 
     # Calculate review fraction
     pr = response.json()[0]
-    # print(pr)
-    # print(type(pull_requests))
-
-    # if 'state' in pr.keys() or 'merged_at' in pr.keys():
-    #     print('Found')
     reviewed_code = 0
     total_code = 0
 
@@ -161,7 +156,7 @@ def licenseScore(owner, repo_name):
 
             except KeyError:
                 license_key = "N/A"
-
+    # If it is not npm, it is a github repo
     except requests.exceptions.RequestException:
         print('Here')
         url = f"https://api.github.com/repos/{owner}/{repo_name}"
@@ -183,7 +178,7 @@ def licenseScore(owner, repo_name):
 
 
 def CheckCompatibility(license):
-    # These lists of compatible and incompatible licenses are based on documents found online under the GPL licensing information website, will be linked in readme
+    # This list of compatible licenses is based on documents found online under the GPL licensing information website, will be linked in readme
     # If its listed as other, that means that there is a license, but not explicitly stated within the repository and is under a readme.
     # We were not able to regex readme, so we are assuming that lgpl is compatible as it is more common than not, compatible with licenses
     compatible = ['artistic-2.0', 'bsl-1.0', 'bsd-2-clause', 'bsd-3-clause', 'BSD-3-Clause', 'Apache-2.0', 'BSD-2-Clause', 'Unlicense', 'bsd-3-clause-clear', 'mit', 'MIT', 'wtfpl',
@@ -200,14 +195,7 @@ def get_github_repo_readme(owner, repo):
     """Retrieve the contents of the README file for a given GitHub repository."""
     repo_url = f'https://github.com/{owner}/{repo}'
 
-    # response = requests.get(url)
-    # print(f'RESPONSE = {response.json}')
-    # if response.status_code == 200:
-    #     return response.text
-    # return None
-
     # repo_url = "https://github.com/username/repo"
-
     response = requests.get(repo_url)
     soup = BeautifulSoup(response.content, "html.parser")
 
@@ -224,7 +212,6 @@ def get_github_repo_readme(owner, repo):
 def calculate_ramp_up_score(owner, repo):
     """Calculate the ramp-up score for a given GitHub repository."""
     readme = get_github_repo_readme(owner, repo)
-
     if readme:
         rampup_time = 1
     else:
