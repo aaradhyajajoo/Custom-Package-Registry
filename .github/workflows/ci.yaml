@@ -28,11 +28,13 @@ jobs:
           pip install -r requirements.txt
       - name: get ts-jest
         run: | 
-          npm install --save-dev jest @types/jest
-          npm install -g ts-jest
+          # npm install --save-dev jest @types/jest
+          # npm install -g ts-jest
+          npm install --save-dev jest typescript ts-jest @types/jest
       - name: get npx
         run: |
           npm install -g npx --force
+          
       - name: run test suite
         run: |
           cd Part2/Testing/
