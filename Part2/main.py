@@ -3,7 +3,7 @@
 from ECE_461_new import compiledqueries
 import rate
 import base64
-from regex import * 
+import regex
 from datetime import datetime
 import random
 import requests
@@ -27,14 +27,14 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8081
+PORT_NUMBER = 80800
 
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-decode_service_account()
-cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(cred, options={
+# decode_service_account()
+# cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -53,12 +53,12 @@ def create():
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
+    print(f"Request headers in /package:{request.headers}")
     if authorization is None:
         return err.auth_failure(bad_creds)
 
     # Gets the JSON data from the request
     data = request.get_json()
-
     # Checking error 404
     if not data:
         if 'URL' not in data.keys() and 'Content' not in data.keys():
@@ -73,7 +73,6 @@ def create():
         url = data['URL']
         if 'npm' in url:
             package_json = rate.get_package_json(url, 'npm')
-            print(package_json)
             ty = 'npm'
         elif 'github' in url:
             owner, repo, ty = rate.extract_repo_info(url)
@@ -83,14 +82,11 @@ def create():
     elif 'Content' in data.keys():
         content = data['Content']
         url = rate.get_decoded_content(content)
-        print(f'URL : {url}')
         if 'npm' in url:
             package_json = rate.get_package_json(url, 'npm')
-            print(f'Package json: {package_json}')
             ty = 'npm'
         elif 'github' in url:
             owner, repo, ty = rate.extract_repo_info(url)
-            print(f'In main: {owner},{repo}')
         else:
             return err.missing_fields()
 
@@ -99,9 +95,7 @@ def create():
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
-        print(f'API URL: {api_url}')
         package_json = rate.get_package_json(api_url, 'github')
-        print(f'Package json: {package_json}')
         if not package_json:
             return err.malformed_req()
         if 'name' not in package_json.keys() or 'version' not in package_json.keys():
@@ -132,27 +126,21 @@ def create():
         #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
         code_review = rate.calculate_review_fraction(owner, name)
         if code_review is None:
-            # print('code review')
             return err.unexpected_error('CodeReviewFractiom')
         dependency = rate.calculate_dependency_metric(package_json, version)
         if dependency is None:
-            # print('dependency')
             return err.unexpected_error('GoodPinningPractice')
         bus_factor = compiledqueries.getBusFactorScore(owner, name)
         if bus_factor is None:
-            # ('bus factor')
             return err.unexpected_error('BusFactor')
         elif bus_factor == -1:
-            print(f'bus factor')
             return err.auth_failure(True)
         responsiveness = compiledqueries.getResponsiveMaintainersScore(
             owner, name)
         if responsiveness is None:
-            # print('responsiveness')
             return err.unexpected_error('Responsiveness')
         correctness = compiledqueries.getCorrectnessScore(owner, name)
         if correctness is None:
-            # print('correctness')
             return err.unexpected_error('Correctness')
 
         license_score = rate.licenseScore(owner, name)
@@ -192,7 +180,6 @@ def create():
 
     ref = db.reference('packages')  # Reference to node in Firebase
     json_store = ref.get()  # Gets the data in the DB
-    print(f'Json stored in the db = {json_store}')
 
     if json_store is None:
         print('DB is empty, adding new data')
@@ -210,7 +197,6 @@ def create():
             unique_version_list.append(json_store[ids]['metadata']['Version'])
             unique_name_list.append(json_store[ids]['metadata']['Name'])
 
-        # print(f'Unique id list = {unique_id_list}')
         if ID in unique_id_list:
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
@@ -269,7 +255,6 @@ def list_of_packages():
     if (not package_queries):
         return err.missing_fields()
 
-    # print(f'Package Queries = {package_queries}')
     pack_list = []  # List of packages to be returned
 
     ref = db.reference('packages')
@@ -322,6 +307,7 @@ def list_of_packages():
 def reset_registry():
     # Checks Authorization
     authorization = None
+    print(f"Request headers /reset: {request.headers}")
     authorization = request.headers.get("X-Authorization")
     if authorization is None:
         return err.no_permission()
@@ -402,7 +388,6 @@ def PackageUpdate(id):
         return err.missing_fields()
 
     # Gets firebaseID of the package (metadata in this case) that we need to update
-    # print(all_packages.items())
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
         if id == metadata['ID']:
@@ -468,8 +453,6 @@ def metric_rate(id):
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
-    # print(f'req = {request}')
-    print(f"_____{authorization}")
     if authorization is None:
         with open("Testing/test14rate.json", "w") as outfile:
             json.dump({"message": "Authentication failed."}, outfile)
@@ -484,7 +467,6 @@ def metric_rate(id):
         return err.malformed_req()
 
     # Checks if Package exists in FireStore Databae
-    print('Checking package_data')
     package_data = None
     for firebaseID, p_data in all_packages.items():
         metadata = p_data['metadata']
@@ -508,9 +490,7 @@ def metric_rate(id):
 
     # Decodes the encoded content field from Data. Also checks if there is no URL in meta data
     if 'Content' in data.keys() and 'URL' not in data.keys():
-        print('Reading content')
         content = data['Content']
-        print('Content')
         if content is None:
             return err.missing_fields()
         url = rate.get_decoded_content(content)
@@ -523,7 +503,6 @@ def metric_rate(id):
     # Check if URL is npm or github
     if 'npm' in url:
         package_json = rate.get_package_json(url, 'npm')
-        print(f'Package json: {package_json}')
         ty = 'npm'
     elif 'github' in url:
         owner, repo, ty = rate.extract_repo_info(url)
@@ -536,7 +515,6 @@ def metric_rate(id):
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
-        # print(f'API URL: {api_url}')
         package_json = rate.get_package_json(api_url, 'github')
 
         if not package_json:
@@ -589,7 +567,6 @@ def metric_rate(id):
                    'NetScore': net_score
                    }
 
-    print(f'___METRICS____: {metric_dict}')  # DELETE THIS #####
     with open("Testing/test14rate.json", "w") as outfile:
         json.dump(metric_dict, outfile)
     return json.dumps(metric_dict), 200
@@ -609,9 +586,8 @@ def authenticate():
 @app.route('/package/byRegEx', methods=['POST'])
 def package_by_regex():
     # format the regex to make it compatible with code.
-    print('Here')
-    regex = request.json
-    regex_pattern = regex['RegEx']
+    r = request.json
+    regex_pattern = r['RegEx']
     if not regex_pattern:
         return err.missing_fields()
 
@@ -622,13 +598,12 @@ def package_by_regex():
         return err.package_doesNot_exist()
 
     # get the packages from the regex
-    matched_packages = search_packages_by_regex(regex_pattern, all_packages)
+    matched_packages = regex.search_packages_by_regex(regex_pattern, all_packages)
 
     # Checking error 404
     if len(matched_packages) == 0:
         return err.package_doesNot_exist()
 
-    # print(f'm_p = {matched_packages}')
 
     # JSON format
     response = []
@@ -650,7 +625,6 @@ def package_by_name():
 
 @app.route('/upload', methods=['POST'])
 def action():
-    print(request.path)
     if 'file' not in request.files:
         return 'No file submitted', 400
 
@@ -674,7 +648,6 @@ def action():
     # now we have the encoded content in the encoded_content variable.
     # we can use this to call the request.
 
-    # print(request.url)
     url = request.url[:len(request.url) - len(request.path)] + '/package'
     headers = {
         'accept': 'application/json',
