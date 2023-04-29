@@ -27,7 +27,7 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 80800
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class()  # Errors
