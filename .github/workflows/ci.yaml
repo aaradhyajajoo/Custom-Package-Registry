@@ -32,7 +32,7 @@ jobs:
           npm install -g ts-jest
       - name: get npx
         run: |
-          npm install -g npx
+          npm install -g npx --force
       - name: run test suite
         run: |
           cd Part2/Testing/
