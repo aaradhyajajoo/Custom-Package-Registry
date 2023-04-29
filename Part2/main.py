@@ -453,10 +453,10 @@ def metric_rate(id):
     # Checks Authorization
     authorization = None
     authorization = request.headers.get("X-Authorization")
-    if authorization is None:
-        with open("Testing/test14rate.json", "w") as outfile:
-            json.dump({"message": "Authentication failed."}, outfile)
-        return err.auth_failure()
+    # if authorization is None:
+    #     with open("Testing/test14rate.json", "w") as outfile:
+    #         json.dump({"message": "Authentication failed."}, outfile)
+    #     return err.auth_failure()
 
     # Get package data from Firebase
     check_package = False
