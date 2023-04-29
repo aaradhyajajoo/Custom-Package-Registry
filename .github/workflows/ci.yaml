@@ -22,10 +22,6 @@ jobs:
           autopep8 Part2/ --recursive --in-place
           cd Part2/
           flake8 --exclude=ECE_461-1/ --max-line-length=460 --ignore=F401,E501,F841,F405,F403,E999 .
-      - name: getting requirements.txt
-        run: |
-          cd Part2/
-          pip install -r requirements.txt
       - name: get ts-jest
         run: | 
           npm install --save-dev jest typescript ts-jest @types/jest
