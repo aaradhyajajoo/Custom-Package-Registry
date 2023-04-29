@@ -27,15 +27,15 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8080
+PORT_NUMBER = 8083
 
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-#decode_service_account()
-#cred = credentials.Certificate("service_account.json")
-#firebase_admin.initialize_app(cred,options={
-firebase_admin.initialize_app(options={
+decode_service_account()
+cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(cred,options={
+# firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -72,7 +72,9 @@ def create():
     if 'URL' in data.keys():
         print('URL is set - Rating is required')
         url_check = True
+        print(f'data field = {data}')
         url = data['URL']
+        print(f'URL that is being checked: {url}')
         if 'npm' in url:
             package_json = rate.get_package_json(url, 'npm')
             ty = 'npm'

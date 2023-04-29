@@ -137,7 +137,7 @@ def get_package_json(package_url, ty):
     elif ty == 'github':
         response = requests.get(package_url)
         package_json = response.json()
-        print(f'response for github in rate = {package_json}')
+        # print(f'response for github in rate = {package_json}')
         if package_json and 'content' not in package_json.keys():
             return None
         file_contents = package_json['content']

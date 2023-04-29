@@ -52,10 +52,11 @@ def getBusFactorScore(owner, name):
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
 
+    print(f'Request = {req.text}')
     if req is None:
         return None
     result = req.json()
-    #print(f'result = {result}')
+    # print(f'result = {result}')
     if 'message' in result.keys():
         if result['message'] == 'Bad credentials':
             return -1
