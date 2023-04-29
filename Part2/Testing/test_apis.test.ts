@@ -85,17 +85,17 @@ test('post regex, regex not found', () => {
   expect(response).toEqual(expectedJson);
 });
 
-//  checks for missing field error message in post regex
-// test('post regex, missing fields', () => {
-//   const curlCommand1 = 'bash test1package.sh'
-//   const curlCommand2 = 'bash test6regex.sh'
-//   const expectedJson = {"message": "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid."}
-//   const process1 = spawnSync(curlCommand1, { shell: true });
-//   const process2 = spawnSync(curlCommand2, { shell: true });
-//   const output = process2.stdout?.toString();
-//   const response = JSON.parse(output || '');
-//   expect(response).toEqual(expectedJson);
-// });
+//checks for missing field error message in post regex
+test('post regex, missing fields', () => {
+  //const curlCommand1 = 'bash test1package.sh'
+  const curlCommand2 = 'bash test6regex.sh'
+  const expectedJson = {"message": "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid."}
+  //const process1 = spawnSync(curlCommand1, { shell: true });
+  const process2 = spawnSync(curlCommand2, { shell: true });
+  const output = process2.stdout?.toString();
+  const response = JSON.parse(output || '');
+  expect(response).toEqual(expectedJson);
+});
 
 //  checks for correct id
 test('get ID, ID exists', () => {
@@ -259,5 +259,25 @@ test('GET ID, Download', () => {
   expect(output).toEqual("");
 });
 
+
+// checks for metric choke error
+test('POST package, metric choke', () => {
+  const curlCommand1 = 'bash test22package.sh'
+  const process = spawnSync(curlCommand1, { shell: true });
+  const output = process.stdout?.toString();
+  const response = JSON.parse(output || '');
+  const expected = {"message": "The package rating system choked on at least one of the metrics. You can check BusFactor"}
+  expect(response).toEqual(expected);
+});
+
+// success in URL version
+test('POST package, URL version success', () => {
+  const curlCommand1 = 'bash test22package.sh'
+  const process = spawnSync(curlCommand1, { shell: true });
+  const output = process.stdout?.toString();
+  const response = JSON.parse(output || '');
+  const expectedJson = {"message": "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid."}
+  expect(response).not.toEqual(expectedJson);
+});
 
 

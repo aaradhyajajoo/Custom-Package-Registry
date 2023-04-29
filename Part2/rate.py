@@ -50,6 +50,9 @@ def get_decoded_content(content):
 def calculate_dependency_metric(package_json, version_spec):
     if not package_json:
         return None
+    if "dependencies" not in package_json.keys():
+        return 0
+
     dependencies = package_json['dependencies']
     num_pinned_dependencies = sum(
         1 for version in dependencies.values() if version.startswith(version_spec))

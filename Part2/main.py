@@ -32,8 +32,9 @@ PORT_NUMBER = 80800
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-# decode_service_account()
-# cred = credentials.Certificate("service_account.json")
+#decode_service_account()
+#cred = credentials.Certificate("service_account.json")
+#firebase_admin.initialize_app(cred,options={
 firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
@@ -134,7 +135,7 @@ def create():
         if bus_factor is None:
             return err.unexpected_error('BusFactor')
         elif bus_factor == -1:
-            return err.auth_failure(True)
+            return err.unexpected_error('BusFactor')
         responsiveness = compiledqueries.getResponsiveMaintainersScore(
             owner, name)
         if responsiveness is None:
