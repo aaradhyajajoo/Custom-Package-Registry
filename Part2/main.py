@@ -70,6 +70,7 @@ def create():
     # url = "https://github.com/jashkenas/underscore"
     # url = "https://www.npmjs.com/package/browserify"
     if 'URL' in data.keys():
+        print('URL is set - Rating is required')
         url_check = True
         url = data['URL']
         if 'npm' in url:
@@ -81,6 +82,7 @@ def create():
             return err.malformed_req()
 
     elif 'Content' in data.keys():
+        print('Content is set - Rating is not required')
         content = data['Content']
         url = rate.get_decoded_content(content)
         if 'npm' in url:
@@ -95,6 +97,7 @@ def create():
 
     # Construct the API URL for the package.json file
     if ty == 'github':
+        print('Package from github')
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
         package_json = rate.get_package_json(api_url, 'github')
         if not package_json:
@@ -107,6 +110,7 @@ def create():
         ID = f"{name}_{version}"
 ##
     elif ty == 'npm':
+        print('Package from npm')
         if not package_json:
             err.malformed_req()
         name = package_json['name']
@@ -115,47 +119,60 @@ def create():
 
     metadata = {'Name': name, 'Version': version, 'ID': ID}
     data_field = data
+    print(f'metadata to be pushed to DB - {metadata}')
+    print(f'data to be pushed to DB - {data}')
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
     if url_check:
         # Need to check error 424
         owner, name, ty = rate.extract_repo_info(url)
+        print(f'Owner is {owner} and Name is {name}')
         if owner is None or name is None or ty is None:
             # Error 500 (Did not find owner or repo) marcelklehr,nodist
+            print("Could not find owner or repo")
             return err.unexpected_error('the URL')
 
         #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
         code_review = rate.calculate_review_fraction(owner, name)
         if code_review is None:
+            print('Code review chokes')
             return err.unexpected_error('CodeReviewFractiom')
         dependency = rate.calculate_dependency_metric(package_json, version)
         if dependency is None:
+            print('Dependency chokes')
             return err.unexpected_error('GoodPinningPractice')
         bus_factor = compiledqueries.getBusFactorScore(owner, name)
         if bus_factor is None:
+            print('Bus Factor chokes')
             return err.unexpected_error('BusFactor')
         elif bus_factor == -1:
+            print('Bus Factor chokes with Bad creds')
             return err.unexpected_error('BusFactor')
         responsiveness = compiledqueries.getResponsiveMaintainersScore(
             owner, name)
         if responsiveness is None:
+            print('Responsiveness chokes')
             return err.unexpected_error('Responsiveness')
         correctness = compiledqueries.getCorrectnessScore(owner, name)
         if correctness is None:
+            print('Correctness chokes')
             return err.unexpected_error('Correctness')
 
         license_score = rate.licenseScore(owner, name)
         if license_score is None:
+            print('LicenseScore chokes')
             return err.unexpected_error('LicenseScore')
         ramp_up = rate.calculate_ramp_up_score(owner, name)
 
         if ramp_up is None:
+            print('Ramp Up chokes')
             return err.unexpected_error('RampUp')
 
         net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness,
                                                           ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
         if net_score is None:
             # Calculations for metrics choked
+            print('Net Score chokes')
             return err.unexpected_error('NetScore')
 
         metric_dict = {}
