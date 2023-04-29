@@ -51,11 +51,11 @@ bad_creds = False
 def create():
 
     # Checks Authorization
-    authorization = None
-    authorization = request.headers.get("X-Authorization")
-    print(f"Request headers in /package:{request.headers}")
-    if authorization is None:
-        return err.auth_failure(bad_creds)
+    # authorization = None
+    # authorization = request.headers.get("X-Authorization")
+    # print(f"Request headers in /package:{request.headers}")
+    # if authorization is None:
+    #     return err.auth_failure(bad_creds)
 
     # Gets the JSON data from the request
     data = request.get_json()
@@ -237,10 +237,10 @@ def create():
 @app.route('/packages', methods=['POST'])
 def list_of_packages():
     # Checks Authorization
-    authorization = None
-    authorization = request.headers.get("X-Authorization")
-    if authorization is None:
-        return err.auth_failure(bad_creds)
+    # authorization = None
+    # authorization = request.headers.get("X-Authorization")
+    # if authorization is None:
+    #     return err.auth_failure(bad_creds)
 
     # Gets package query from request body
     package_queries = request.json
@@ -290,9 +290,13 @@ def list_of_packages():
                 x.append(uniq_pack_list[j])
                 save.append(x[j])
                 j += 1
+            else:
+                return err.too_many_packages()
 
     if len(save) == 0:
         return err.package_doesNot_exist()
+    
+
 
     print("Packages endpoint is working.")
     return json.dumps(save), 200
@@ -322,10 +326,10 @@ def reset_registry():
 @app.route('/package/<id>', methods=['GET', 'PUT', 'DELETE'])
 def package_given_id(id):
     # Checks Authorization
-    authorization = None
-    authorization = request.headers.get("X-Authorization")
-    if authorization is None:
-        return err.auth_failure(bad_creds)
+    # authorization = None
+    # authorization = request.headers.get("X-Authorization")
+    # if authorization is None:
+    #     return err.auth_failure(bad_creds)
     if request.method == 'GET':
         print("Get for package with given ID is working.")
         return PackageRetrieve(id)
@@ -451,8 +455,8 @@ def PackageDelete(id):
 @app.route('/package/<id>/rate/', methods=['GET'])
 def metric_rate(id):
     # Checks Authorization
-    authorization = None
-    authorization = request.headers.get("X-Authorization")
+    # authorization = None
+    # authorization = request.headers.get("X-Authorization")
     # if authorization is None:
     #     with open("Testing/test14rate.json", "w") as outfile:
     #         json.dump({"message": "Authentication failed."}, outfile)
@@ -577,7 +581,7 @@ def index():
     return "Hello, World!"
 
 
-@app.route('/authenticate/', methods=['PUT'])
+@app.route('/authenticate', methods=['PUT'])
 def authenticate():
     print("Hit authenticate endpoint")
     return err.no_authentication()
