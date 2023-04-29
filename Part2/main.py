@@ -441,7 +441,8 @@ def PackageUpdate(id):
 def PackageDelete(id):
     ref = db.reference('packages')
     all_packages = ref.get()
-
+    if not all_packages:
+        return err.package_doesNot_exist()
     id_exists = False
 
     # Gets firebaseID of the package (metadata in this case) that we need to update
