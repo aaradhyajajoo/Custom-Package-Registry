@@ -27,7 +27,7 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8083
+PORT_NUMBER = 8084
 
 '''Inits'''
 err = Err_Class()  # Errors
@@ -147,9 +147,9 @@ def create():
         if bus_factor is None:
             print('Bus Factor chokes')
             return err.unexpected_error('BusFactor')
-        elif bus_factor == -1:
-            print('Bus Factor chokes with Bad creds')
-            return err.unexpected_error('BusFactor')
+        # elif bus_factor == -1:
+        #     print('Bus Factor chokes with Bad creds')
+        #     return err.unexpected_error('BusFactor')
         responsiveness = compiledqueries.getResponsiveMaintainersScore(
             owner, name)
         if responsiveness is None:
@@ -191,6 +191,7 @@ def create():
 
         for key, values in metric_dict.items():
             if values < 0.5:
+                print(f'Disqualified score. See metric_dict: {metric_dict}')
                 return err.disqualified_rating(key)
 
     package = {

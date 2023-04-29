@@ -59,7 +59,7 @@ def getBusFactorScore(owner, name):
     # print(f'result = {result}')
     if 'message' in result.keys():
         if result['message'] == 'Bad credentials':
-            return -1
+            return 0
 
     if result['data']['repository'] is None:
         return 0
