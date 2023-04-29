@@ -3,10 +3,12 @@
 from ECE_461_new import compiledqueries
 import rate
 import base64
-import regex
+from regex import * 
 from datetime import datetime
 import random
 import requests
+import binascii
+
 
 # Error Class
 from errors import Err_Class
@@ -25,14 +27,14 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8080
+PORT_NUMBER = 8081
 
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-# decode_service_account()
-# cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(options={
+decode_service_account()
+cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(cred, options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -606,7 +608,7 @@ def authenticate():
 @app.route('/package/byRegEx', methods=['POST'])
 def package_by_regex():
     # format the regex to make it compatible with code.
-
+    print('Here')
     regex = request.json
     regex_pattern = regex['RegEx']
     if not regex_pattern:
@@ -619,8 +621,7 @@ def package_by_regex():
         return err.package_doesNot_exist()
 
     # get the packages from the regex
-    matched_packages = regex.search_packages_by_regex(
-        regex_pattern, all_packages)
+    matched_packages = search_packages_by_regex(regex_pattern, all_packages)
 
     # Checking error 404
     if len(matched_packages) == 0:
