@@ -31,13 +31,13 @@ jobs:
           # npm install --save-dev jest @types/jest
           # npm install -g ts-jest
           npm install --save-dev jest typescript ts-jest @types/jest
-      - name: get npx
-        run: |
-          npm install -g npx --force
+      # - name: get npx
+      #   run: |
+      #     npm install -g npx --force
           
       - name: run test suite
         run: |
-          npm cache clean --force
+          # npm cache clean --force
           cd Part2/Testing/
           npx jest test_apis.test.ts
 
