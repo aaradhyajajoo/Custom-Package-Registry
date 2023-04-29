@@ -37,6 +37,7 @@ jobs:
           
       - name: run test suite
         run: |
+          npm cache clean --force
           cd Part2/Testing/
           npx jest test_apis.test.ts
 
