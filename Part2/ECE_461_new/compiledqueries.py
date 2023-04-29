@@ -124,9 +124,10 @@ def getResponsiveMaintainersScore(owner, name):
         gts = '"' + str(lastyear) + "-" + str(todaysDateDateTime.month) + "-" + str(
             todaysDateDateTime.day) + "T01:01:00Z" + '"'
 
-    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})" + " { \n" + "\t ref(qualifiedName:" + f" {master})" + \
+    query1 = "{\n" + f"\trepository(owner: \"{owner}\", name: \"{name}\")" + " { \n" + "\t ref(qualifiedName:" + f" \"{master}\")" + \
         " { " + "\n\t\ttarget { \n\t\t ... on Commit {\n\t" + \
-        f"history(since:{gts})" + "{" + "\n\t\ttotalCount}}}}}\n\t\t}"
+        f"history(since:{gts})" + \
+        "{\n\t\tedges{\n\t\tnode{\n\t\tmessageHeadline\n\t\t}}\n\t\t}}}}}\n\t\t}"
 
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
