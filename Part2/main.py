@@ -32,8 +32,9 @@ PORT_NUMBER = 80800
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-# decode_service_account()
-# cred = credentials.Certificate("service_account.json")
+#decode_service_account()
+#cred = credentials.Certificate("service_account.json")
+#firebase_admin.initialize_app(cred,options={
 firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
@@ -104,7 +105,7 @@ def create():
         name = package_json['name']
         version = package_json['version']
         ID = f"{name}_{version}"
-
+##
     elif ty == 'npm':
         if not package_json:
             err.malformed_req()
@@ -134,7 +135,7 @@ def create():
         if bus_factor is None:
             return err.unexpected_error('BusFactor')
         elif bus_factor == -1:
-            return err.auth_failure(True)
+            return err.unexpected_error('BusFactor')
         responsiveness = compiledqueries.getResponsiveMaintainersScore(
             owner, name)
         if responsiveness is None:
@@ -368,14 +369,17 @@ def PackageRetrieve(id):
         content = data_field['Content']
 
         try:
+            print("DECODING CONTENT")
             decoded_content = base64.b64decode(content)
         except binascii.Error:
             return err.malformed_req()
 
         if not os.path.exists(directory):
+            print("MAKING DIRECTORY")
             os.makedirs(directory)
 
         with open(os.path.join(directory, 'package.zip'), 'wb') as zip_file:
+            print("WRITE INTO FILE")
             zip_file.write(decoded_content)
 
         return json.dumps(p_data), 200
@@ -456,7 +460,7 @@ def PackageDelete(id):
 
 
 # Correct: curl -X 'GET' 'http://127.0.0.1:8080/package/underscore/rate' -H 'accept: application/json' -H 'X-Authorization: f'
-@app.route('/package/<id>/rate/', methods=['GET'])
+@app.route('/package/<id>/rate', methods=['GET'])
 def metric_rate(id):
     # Checks Authorization
     # authorization = None

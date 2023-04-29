@@ -55,7 +55,7 @@ def getBusFactorScore(owner, name):
     if req is None:
         return None
     result = req.json()
-    # print(f'result = {result}')
+    #print(f'result = {result}')
     if 'message' in result.keys():
         if result['message'] == 'Bad credentials':
             return -1

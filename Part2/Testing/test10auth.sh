@@ -1,5 +1,5 @@
 curl -X 'PUT' \
-  'http://ece-461-ae1a9.uc.r.appspot.com/authenticate/' \
+  'http://ece-461-ae1a9.uc.r.appspot.com/authenticate' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
