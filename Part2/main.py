@@ -25,14 +25,14 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8081
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-decode_service_account()
-cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(cred, options={
+# decode_service_account()
+# cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -130,7 +130,7 @@ def create():
         #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
         code_review = rate.calculate_review_fraction(owner, name)
         if code_review is None:
-            #print('code review')
+            # print('code review')
             return err.unexpected_error('CodeReviewFractiom')
         dependency = rate.calculate_dependency_metric(package_json, version)
         if dependency is None:
@@ -138,12 +138,13 @@ def create():
             return err.unexpected_error('GoodPinningPractice')
         bus_factor = compiledqueries.getBusFactorScore(owner, name)
         if bus_factor is None:
-            #('bus factor')
+            # ('bus factor')
             return err.unexpected_error('BusFactor')
         elif bus_factor == -1:
             print(f'bus factor')
             return err.auth_failure(True)
-        responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
+        responsiveness = compiledqueries.getResponsiveMaintainersScore(
+            owner, name)
         if responsiveness is None:
             # print('responsiveness')
             return err.unexpected_error('Responsiveness')
@@ -161,7 +162,7 @@ def create():
             return err.unexpected_error('RampUp')
 
         net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness,
-                        ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
+                                                          ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
         if net_score is None:
             # Calculations for metrics choked
             return err.unexpected_error('NetScore')
@@ -169,14 +170,14 @@ def create():
         metric_dict = {}
         metric_dict = {'BusFactor': bus_factor,
 
-                    'Correctness': correctness,
-                    'RampUp': ramp_up,
-                    'Responsiveness': responsiveness,
-                    'LicenseScore': license_score,
-                    'GoodPinningPractice': dependency,
-                    'CodeReviewFractiom': code_review,
-                    'NetScore': net_score
-                    }
+                       'Correctness': correctness,
+                       'RampUp': ramp_up,
+                       'Responsiveness': responsiveness,
+                       'LicenseScore': license_score,
+                       'GoodPinningPractice': dependency,
+                       'CodeReviewFractiom': code_review,
+                       'NetScore': net_score
+                       }
 
         for key, values in metric_dict.items():
             if values < 0.5:
@@ -235,6 +236,7 @@ def create():
         else:
             return err.package_exists()
 
+    print("Package is created successfully.")
     return json.dumps(package), 201
 
 # Curl requests: curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
@@ -305,6 +307,7 @@ def list_of_packages():
     if len(save) == 0:
         return err.package_doesNot_exist()
 
+    print("Packages endpoint is working.")
     return json.dumps(save), 200
 
 # Test Command: curl --location --request DELETE 'http://127.0.0.1:8080/reset' --header /
@@ -322,6 +325,7 @@ def reset_registry():
         return err.no_permission()
     ref = db.reference('packages')
     ref.delete()
+    print("Reset endpoint is working.")
     return json.dumps('Registry is reset.'), 200
 
 # GET, PUT, DELETE - Package with given ID in endpoint
@@ -335,10 +339,13 @@ def package_given_id(id):
     if authorization is None:
         return err.auth_failure(bad_creds)
     if request.method == 'GET':
+        print("Get for package with given ID is working.")
         return PackageRetrieve(id)
     if request.method == 'PUT':
+        print("Put for package with given ID is working.")
         return PackageUpdate(id)
     if request.method == 'DELETE':
+        print("Delete for package with given ID is working.")
         return PackageDelete(id)
 
 
@@ -526,7 +533,7 @@ def metric_rate(id):
     # Construct the API URL for the package.json file
     if ty == 'github':
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
-        #print(f'API URL: {api_url}')
+        # print(f'API URL: {api_url}')
         package_json = rate.get_package_json(api_url, 'github')
 
         if not package_json:
@@ -545,7 +552,7 @@ def metric_rate(id):
     code_review = rate.calculate_review_fraction(owner, name)
     if code_review is None:
 
-        #print('code review')
+        # print('code review')
         return err.unexpected_error()
     dependency = rate.calculate_dependency_metric(package_json, p_version)
     if dependency is None:
@@ -553,7 +560,7 @@ def metric_rate(id):
         return err.unexpected_error()
     bus_factor = compiledqueries.getBusFactorScore(owner, name)
     if bus_factor is None:
-        #('bus factor')
+        # ('bus factor')
         return err.unexpected_error()
     responsiveness = compiledqueries.getResponsiveMaintainersScore(owner, name)
     if responsiveness is None:
@@ -599,6 +606,7 @@ def index():
 
 @app.route('/authenticate/', methods=['PUT'])
 def authenticate():
+    print("Hit authenticate endpoint")
     return err.no_authentication()
 
 
@@ -618,7 +626,8 @@ def package_by_regex():
         return err.package_doesNot_exist()
 
     # get the packages from the regex
-    matched_packages = regex.search_packages_by_regex(regex_pattern,all_packages)
+    matched_packages = regex.search_packages_by_regex(
+        regex_pattern, all_packages)
 
     # Checking error 404
     if len(matched_packages) == 0:
@@ -636,9 +645,6 @@ def package_by_regex():
         response.append(package_metadata)
 
     return json.dumps(response), 200
-
-
-
 
 
 @app.route('/ui/package', methods=['GET', 'POST'])
