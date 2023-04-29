@@ -1,6 +1,6 @@
 # ECE 461 Project Group 30
 
-## Part 1 
+## Project Part 1
 
 ### Introduction
 Our team is helping the ACME Corporation to develop a custom NPM registry. The ACME Corporation has successfully ported one of their back-end components to Node.js and is considering bringing up new Node.js-based services. They have over 2 million modules available through npm, but are concerned about the quality and maintainability of open-source modules. In part one of the project, we bulit a Command-line interface.that takes command line arguments as input and produces an ordered list of repositories with their overall and sub-scores for different metrics. 
@@ -26,11 +26,11 @@ We used main.py to evaluate the user input, and direct the program to the correc
  where URL_FILE is the absolute location of a file consisting of an ASCII-encoded newline-delimited set of URLs
  This invocation produces NDJSON output. Each row includes the fields: “URL”, “NetScore”, “RampUp”, “Correctness”, “BusFactor”, “ResponsiveMaintainer”, and “License
  
- ## Part 2
+ ## Project Part 2
  
  ### Introduction
- ACME Corporation is continuing to expand its Node.js footprint.ACME Corporation would like your team at BSS to develop a custom registry
-for their npm modules. Our system will be accessible via a web browser interface that is compliant with the Americans with Disabilities Act (ADA)3. Our system will be accessible via a REST-ful API. For scalability reasons our system is deployed on Google Cloud Platform (GCP) using Google App Engine.
+ ACME Corporation is continuing to expand its Node.js footprint. ACME Corporation would like your team at BSS to develop a custom registry
+for their npm modules.
 
 ### Baseline Requirements 
 - Upload, update, rate, and download individual packages.
@@ -39,19 +39,11 @@ for their npm modules. Our system will be accessible via a web browser interface
 - Package search
 - Directory of all packages
 - Reset to default system state
+- use at least one GCP component – e.g. a VM with storage attached, hosted on Google Compute Engine
 
-### Progress
-- CI/CD functionality
--  API Endpoints
--  Configuring Rate option and new metrics
- 
-### Deliverable 1
-- implemented Google Firebase as the database
-- completed "/package" endpoint
-- compelted "/packages" endpoint
-- completed "/reset" endpoint
-- flake8 implented to run 6 tests on every pull request
-- Performance Testing is available in part2 directory of performance branch
+## Our Design 
+Our system is compliant with Americans with Disabilities Act (ADA)3. Our system is deployed on Google Cloud Platform (GCP) using Google App Engine and uses a Google Firebase realtime database to hold the directory of packages. Our system supports upload, update, rate, and download packages represented as zipped files and can request the ingestion of a public npm package. It also can support the new metrics requested by the customer and the users can do a search for all the packages.
+
 
 ### Authors
 - Eshaan Minocha
