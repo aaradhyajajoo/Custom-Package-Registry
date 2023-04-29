@@ -27,15 +27,15 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8084
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
 decode_service_account()
-cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(cred,options={
-# firebase_admin.initialize_app(options={
+# cred = credentials.Certificate("service_account.json")
+# firebase_admin.initialize_app(cred,options={
+firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -189,10 +189,11 @@ def create():
                        'NetScore': net_score
                        }
 
-        for key, values in metric_dict.items():
-            if values < 0.5:
-                print(f'Disqualified score. See metric_dict: {metric_dict}')
-                return err.disqualified_rating(key)
+        print(f'See metric_dict: {metric_dict}')
+        # for key, values in metric_dict.items():
+        #     if values < 0.5:
+        #         print(f'Disqualified score. See metric_dict: {metric_dict}')
+        #         return err.disqualified_rating(key)
 
     package = {
         'metadata': metadata,
