@@ -452,7 +452,7 @@ def PackageDelete(id):
 
 
 # Correct: curl -X 'GET' 'http://127.0.0.1:8080/package/underscore/rate' -H 'accept: application/json' -H 'X-Authorization: f'
-@app.route('/package/<id>/rate/', methods=['GET'])
+@app.route('/package/<id>/rate', methods=['GET'])
 def metric_rate(id):
     # Checks Authorization
     # authorization = None
