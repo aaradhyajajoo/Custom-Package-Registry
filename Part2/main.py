@@ -53,7 +53,7 @@ def create():
     # Checks Authorization
     # authorization = None
     # authorization = request.headers.get("X-Authorization")
-    # print(f"Request headers in /package:{request.headers}")
+    print(f"Request headers in /package:{request.headers}")
     # if authorization is None:
     #     return err.auth_failure(bad_creds)
 
@@ -242,6 +242,8 @@ def list_of_packages():
     # if authorization is None:
     #     return err.auth_failure(bad_creds)
 
+    print(f"Request headers in /packages:{request.headers}")
+
     # Gets package query from request body
     package_queries = request.json
     offset = request.args.get('offset', default=0, type=int)
@@ -330,6 +332,8 @@ def package_given_id(id):
     # authorization = request.headers.get("X-Authorization")
     # if authorization is None:
     #     return err.auth_failure(bad_creds)
+    print(f"Request headers in /package/<id>:{request.headers}")
+
     if request.method == 'GET':
         print("Get for package with given ID is working.")
         return PackageRetrieve(id)
@@ -461,6 +465,8 @@ def metric_rate(id):
     #     with open("Testing/test14rate.json", "w") as outfile:
     #         json.dump({"message": "Authentication failed."}, outfile)
     #     return err.auth_failure()
+
+    print(f"Request headers in /package/<id>/rate:{request.headers}")
 
     # Get package data from Firebase
     check_package = False
