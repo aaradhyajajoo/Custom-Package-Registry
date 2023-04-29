@@ -5,5 +5,5 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "JSProgram": "if (process.argv.length === 7) {\nconsole.log('\''Success'\'')\nprocess.exit(0)\n} else {\nconsole.log('\''Failed'\'')\nprocess.exit(1)\n}\n",
-  "URL": "https://github.com/lodash/lodash/packages"
+  "URL": "https://www.npmjs.com/package/lodash"
 }'
