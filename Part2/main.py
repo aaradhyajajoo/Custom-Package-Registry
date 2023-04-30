@@ -34,8 +34,8 @@ err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
 # decode_service_account()
 # cred = credentials.Certificate("service_account.json")
+# firebase_admin.initialize_app(cred, options={
 firebase_admin.initialize_app(options={
-# firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
 
@@ -98,6 +98,8 @@ def create():
                 ty = 'npm'
             elif 'github' in url:
                 owner, repo, ty = rate.extract_repo_info(url)
+                if owner is None:
+                    return err.unexpected_error('the URL')
             else:
                 return err.missing_fields()
         else:
@@ -230,6 +232,7 @@ def create():
             unique_name_list.append(json_store[ids]['metadata']['Name'])
 
         ID = metadata['ID']
+        print(f'ID = {ID}')
         if ID in unique_id_list:
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
@@ -251,6 +254,7 @@ def create():
                     package = ref.get('packages/' + firebaseID)
                     return json.dumps(package), 201
                 else:
+                    print('Ingestion not req')
                     return err.package_exists()
             else:
                 return err.package_exists()
@@ -258,6 +262,7 @@ def create():
             # print(f'Unique id list = {unique_id_list}')
             ref.push(package)
         else:
+            print('ID in unique list')
             return err.package_exists()
 
     print("Package is created successfully.")

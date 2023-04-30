@@ -76,13 +76,14 @@ def extract_repo_info(url):
         owner, repo_name = repo_url.split('/')
         return owner, repo_name, 'npm'
     # Check if URL is a GitHub repository URL
-    github_match = re.match(
-        r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
-    if github_match:
-        print('GitHub match')
-        owner = github_match.group(1)
-        repo_name = github_match.group(2)
-        print(f'Owner. Repo name = {owner},{repo_name}')
+    # github_match = re.match(
+    #     r'^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/?$', url)
+    if 'github' in url:
+        url = url.split('/')
+        # print('GitHub match')
+        owner = url[-2]
+        repo_name = url[-1]
+        # print(f'Owner. Repo name = {owner},{repo_name}')
         return owner, repo_name, 'github'
     # URL is not a valid npm package URL or GitHub repository URL
     return None, None, None

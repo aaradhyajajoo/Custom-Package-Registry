@@ -104,8 +104,8 @@ def getCorrectnessScore(owner, name):
 
 # measures responsive maintainers score by seeing if there have been commits within the last year (0 or 1)
 def getResponsiveMaintainersScore(owner, name):
-  #  owner = '"' + f"{owner}" + '"'
-   # name = '"' + f"{name}" + '"'
+    #  owner = '"' + f"{owner}" + '"'
+    #  name = '"' + f"{name}" + '"'
     master = "master"
 
     #create github timestamp of last year's date
