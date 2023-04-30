@@ -87,6 +87,9 @@ def getCorrectnessScore(owner, name):
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
     result = req.json()
+    if 'message' in result.keys():
+        if result['message'] == 'Bad credentials':
+            return 0
     if not result:
         return None
     if result['data']['repository'] is None:
@@ -132,9 +135,11 @@ def getResponsiveMaintainersScore(owner, name):
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
     result = req.json()
-
     if not result:
         return None
+    if 'message' in result.keys():
+        if result['message'] == 'Bad credentials':
+            return 0
     if result['data']['repository'] is None or result['data']['repository']['ref'] is None:
         return 0
     numCommits = result['data']['repository']['ref']['target']['history']['totalCount']

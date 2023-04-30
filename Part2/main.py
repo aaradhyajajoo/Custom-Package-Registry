@@ -27,14 +27,14 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8083
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-decode_service_account()
-cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(cred,options={
+# decode_service_account()
+# cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(options={
 # firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
@@ -63,36 +63,45 @@ def create():
     # Checking error 404
     if not data:
         if 'URL' not in data.keys() and 'Content' not in data.keys():
+            print('Could not find URL and Content')
             return err.missing_fields()
 
     url_check = False
     # URL examples
     # url = "https://github.com/jashkenas/underscore"
     # url = "https://www.npmjs.com/package/browserify"
-    if 'URL' in data.keys():
-        print('URL is set - Rating is required')
-        url_check = True
-        print(f'data field = {data}')
-        url = data['URL']
-        print(f'URL that is being checked: {url}')
-        if 'npm' in url:
-            package_json = rate.get_package_json(url, 'npm')
-            ty = 'npm'
-        elif 'github' in url:
-            owner, repo, ty = rate.extract_repo_info(url)
+    print(f'Data = {data}')
+    if 'URL' in data.keys() and 'Content' in data.keys():
+        print('Recognized that URL and Content are present in the data field')
+        str_value_content = str(data['Content'])
+        str_value_url = str(data['URL'])
+        if data['URL'] is not None and (str_value_content == 'None' or str_value_content == 'null') :
+            print('URL is set - Rating is required')
+            url_check = True
+            print(f'data field = {data}')
+            url = data['URL']
+            print(f'URL that is being checked: {url}')
+            if 'npm' in url:
+                package_json = rate.get_package_json(url, 'npm')
+                ty = 'npm'
+            elif 'github' in url:
+                owner, repo, ty = rate.extract_repo_info(url)
+            else:
+                return err.malformed_req()
+        
+        elif data['Content'] is not None and (str_value_url == 'None' or str_value_url == 'null'):
+            print('Content is set - Rating is not required')
+            content = data['Content']
+            url = rate.get_decoded_content(content)
+            if 'npm' in url:
+                package_json = rate.get_package_json(url, 'npm')
+                ty = 'npm'
+            elif 'github' in url:
+                owner, repo, ty = rate.extract_repo_info(url)
+            else:
+                return err.missing_fields()
         else:
-            return err.malformed_req()
-
-    elif 'Content' in data.keys():
-        print('Content is set - Rating is not required')
-        content = data['Content']
-        url = rate.get_decoded_content(content)
-        if 'npm' in url:
-            package_json = rate.get_package_json(url, 'npm')
-            ty = 'npm'
-        elif 'github' in url:
-            owner, repo, ty = rate.extract_repo_info(url)
-        else:
+            print('Either one is not None')
             return err.missing_fields()
 
     file_path = "package.json"
@@ -121,8 +130,8 @@ def create():
 
     metadata = {'Name': name, 'Version': version, 'ID': ID}
     data_field = data
-    print(f'metadata to be pushed to DB - {metadata}')
-    print(f'data to be pushed to DB - {data}')
+    # print(f'metadata to be pushed to DB - {metadata}')
+    # print(f'data to be pushed to DB - {data}')
 
     ''' NEED TO CALL RATING FUNCTION TO GET RATE AND CHECK ERROR 424 '''
     if url_check:
@@ -189,10 +198,11 @@ def create():
                        'NetScore': net_score
                        }
 
-        for key, values in metric_dict.items():
-            if values < 0.5:
-                print(f'Disqualified score. See metric_dict: {metric_dict}')
-                return err.disqualified_rating(key)
+        print(f'See metric_dict: {metric_dict}')
+        # for key, values in metric_dict.items():
+        #     if values < 0.5:
+        #         print(f'Disqualified score. See metric_dict: {metric_dict}')
+        #         return err.disqualified_rating(key)
 
     package = {
         'metadata': metadata,
@@ -206,6 +216,7 @@ def create():
         print('DB is empty, adding new data')
         ref.push(package)  # Upload data to package
     else:  # If some packages already exist in the DB
+        print('Package exists')
         unique_id_list = []
         unique_version_list = []
         unique_name_list = []
@@ -218,14 +229,15 @@ def create():
             unique_version_list.append(json_store[ids]['metadata']['Version'])
             unique_name_list.append(json_store[ids]['metadata']['Name'])
 
+        ID = metadata['ID']
         if ID in unique_id_list:
             # Ingestion - Add/Update the Firebase Database
             i = unique_id_list.index(ID)
             firebaseID = firebaseIDs_list[i]  # Gets firebase ID
-            if 'URL' in list(data_field.keys()):
+            if str_value_url != 'None':
                 # Check if (URL does not exist in the DB) or if (it does then the one being uploaded is different)
-                if (metadata == json_store[firebaseID]['metadata'] and 'URL' not in json_store[firebaseID]['data']) or \
-                        (metadata == json_store[firebaseID]['metadata'] and 'URL' in json_store[firebaseID]['data'] and data_field['URL'] != json_store[firebaseID]['data']['URL']):
+                if (metadata == json_store[firebaseID]['metadata'] and str(json_store[firebaseID]['data']['URL'])) == 'None' or \
+                        (metadata == json_store[firebaseID]['metadata'] and str(json_store[firebaseID]['data']['URL'])!='None' and data_field['URL'] != json_store[firebaseID]['data']['URL']):
                     print('Ingestion required')
                     ref = db.reference('packages/' + firebaseID)
                     update_data = {
@@ -240,7 +252,10 @@ def create():
                     return json.dumps(package), 201
                 else:
                     return err.package_exists()
+            else:
+                return err.package_exists()
         elif ID not in unique_id_list:
+            # print(f'Unique id list = {unique_id_list}')
             ref.push(package)
         else:
             return err.package_exists()
@@ -384,7 +399,10 @@ def PackageRetrieve(id):
         return err.package_doesNot_exist()
 
     data_field = p_data['data']
-    if 'Content' in data_field.keys() and 'URL' not in data_field.keys():
+    str_value_content = data_field['Content']
+    str_value_url = data_field['URL']
+
+    if str_value_content != 'None' and str_value_url == 'None':
         directory = f'ZipFile_decoded_{datetime.now().strftime("%H_%M_%S")}_{random.randint(0, 1000)}'
         content = data_field['Content']
 
@@ -416,7 +434,7 @@ def PackageUpdate(id):
     id_exists = False
 
     # As per PackageUpdate, only one field must be set
-    if 'Content' in data['data'].keys() and 'URL' in data['data'].keys():
+    if str(data['data']['Content']) != 'None' and str(data['data']['URL']) != 'None':
         return err.missing_fields()
 
     # Gets firebaseID of the package (metadata in this case) that we need to update
@@ -436,14 +454,14 @@ def PackageUpdate(id):
 
     # Updating the specific child node in the DB
     ref = db.reference('packages/' + firebaseID)
-    if 'URL' in data['data'].keys():
+    if str(data['data']['URL']) != 'None':
         update_data = {
             'data': {
                 'URL': data['data']['URL'],
                 'JSProgram': data['data']['JSProgram']
             }
         }
-    elif 'Content' in data['data'].keys():
+    elif str(data['data']['Content']) != 'None':
         update_data = {
             'data': {
                 'Content': data['data']['Content'],
@@ -522,14 +540,14 @@ def metric_rate(id):
 
     data = package_data['data']
 
+    str_value_content = str(data['Content'])
+    str_value_url = str(data['URL'])
     # Decodes the encoded content field from Data. Also checks if there is no URL in meta data
-    if 'Content' in data.keys() and 'URL' not in data.keys():
+    if str_value_content != 'None' and str_value_url == 'None':
         content = data['Content']
-        if content is None:
-            return err.missing_fields()
         url = rate.get_decoded_content(content)
 
-    elif 'Content' not in data.keys() and 'URL' in data.keys():
+    elif str_value_content == 'None' and str_value_url != 'None':
         # Get package URL from package data if it does not contain content
         url = data['URL']
         if url is None:
