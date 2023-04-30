@@ -93,11 +93,11 @@ def calculate_review_fraction(owner, repo):
     api_url = f'https://api.github.com/repos/{owner}/{repo}/pulls'
     headers = {'Accept': 'application/vnd.github.v3+json'}
     response = requests.get(api_url, headers=headers)
-
     # Check for errors
     if response.status_code != 200:
         return None
-
+    if not response.json():
+     return None
     # Calculate review fraction
     pr = response.json()[0]
     reviewed_code = 0
