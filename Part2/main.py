@@ -462,7 +462,7 @@ def PackageUpdate(id):
                 }
             }
     if 'Content' in data['data'].keys():
-        elif str(data['data']['Content']) != 'None':
+        if str(data['data']['Content']) != 'None':
             update_data = {
                 'data': {
                     'Content': data['data']['Content'],

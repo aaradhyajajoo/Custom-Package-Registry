@@ -1,4 +1,4 @@
 curl -X 'DELETE' \
-  'http://ece-461-ae1a9.uc.r.appspot.com/reset' \
+  'http://127.0.0.1:8087/reset' \
   -H 'accept: */*' \
   -H 'X-Authorization: random'
