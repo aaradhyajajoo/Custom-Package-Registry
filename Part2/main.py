@@ -292,6 +292,9 @@ def list_of_packages():
 
     # Gets the firebaseIDs as keys and the values as the packages we need
     all_packages = ref.get()
+    if not all_packages:
+        return err.package_doesNot_exist()
+
     uniq_pack_list = []
     for query in package_queries:
         # Returning all packages
@@ -383,6 +386,10 @@ def PackageRetrieve(id):
 
     pack_exists = False
 
+    if not all_packages:
+        return err.package_doesNot_exist()
+
+
     for p_data in all_packages.values():
         metadata = p_data['metadata']
         if id == metadata['ID']:
@@ -427,6 +434,9 @@ def PackageRetrieve(id):
 def PackageUpdate(id):
     ref = db.reference('packages')
     all_packages = ref.get()
+
+    if not all_packages:
+        return err.package_doesNot_exist()
 
     data = request.json
     print(f'data = {data}')
@@ -518,7 +528,7 @@ def metric_rate(id):
     ref = db.reference('packages')
     all_packages = ref.get()
     if not all_packages:
-        return err.malformed_req()
+        return err.package_doesNot_exist()
 
     # Checks if Package exists in FireStore Databae
     package_data = None
@@ -653,7 +663,7 @@ def package_by_regex():
     ref = db.reference('packages')
     all_packages = ref.get()
 
-    if all_packages is None:
+    if not all_packages:
         return err.package_doesNot_exist()
 
     # get the packages from the regex
