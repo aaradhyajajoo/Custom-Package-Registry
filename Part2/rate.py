@@ -97,7 +97,7 @@ def calculate_review_fraction(owner, repo):
     if response.status_code != 200:
         return None
     if not response.json():
-     return None
+     return 0
     # Calculate review fraction
     pr = response.json()[0]
     reviewed_code = 0
