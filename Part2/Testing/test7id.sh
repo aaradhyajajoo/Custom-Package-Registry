@@ -1,4 +1,4 @@
 curl -X 'GET' \
-  'http://ece-461-ae1a9.uc.r.appspot.com/package/nodist_0.9.1' \
+  'http://127.0.0.1:8087/package/debug_4.3.4' \
   -H 'accept: application/json' \
   -H 'X-Authorization: random'
