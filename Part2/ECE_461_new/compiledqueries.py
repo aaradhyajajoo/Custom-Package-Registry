@@ -7,12 +7,12 @@ token2 = ""
 token = ""
 
 try:
-    token2 = os.environ['GITHUB_TOKEN']
+    token = os.environ['GITHUB_TOKEN']
 except KeyError:
     print("No Github token environment variable set")
 
-token1 = "ghp_"
-token = token1 + token2
+#token1 = "ghp_"
+#token = token1 + token2
 header = {'Authorization': 'Bearer {}'.format(token)}
 
 
@@ -52,7 +52,6 @@ def getBusFactorScore(owner, name):
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
 
-    print(f'Request = {req.text}')
     if req is None:
         return None
     result = req.json()
@@ -102,44 +101,37 @@ def getCorrectnessScore(owner, name):
 
 # measures responsive maintainers score by seeing if there have been commits within the last year (0 or 1)
 def getResponsiveMaintainersScore(owner, name):
-    # owner = '"' + f"{owner}" + '"'
-    # name = '"' + f"{name}" + '"'
-    # master = '"' + "master" + '"'
+  #  owner = '"' + f"{owner}" + '"'
+   # name = '"' + f"{name}" + '"'
+    master = "master"
 
-    # create github timestamp of last year's date
-    # todaysDateDateTime = date.today()
-    # lastyear = todaysDateDateTime.year - 1
-    # # format time stamp accordingly as a string
-    # gts = ""
-    # if todaysDateDateTime.day < 10 and todaysDateDateTime.month < 10:
-    #     gts = '"' + str(lastyear) + "-0" + str(todaysDateDateTime.month) + "-0" + str(
-    #         todaysDateDateTime.day) + "T01:01:00Z" + '"'
-    # if todaysDateDateTime.day < 10 and todaysDateDateTime.month >= 10:
-    #     gts = '"' + str(lastyear) + "-" + str(todaysDateDateTime.month) + "-0" + str(
-    #         todaysDateDateTime.day) + "T01:01:00Z" + '"'
-    # if todaysDateDateTime.day >= 10 and todaysDateDateTime.month < 10:
-    #     gts = '"' + str(lastyear) + "-0" + str(todaysDateDateTime.month) + "-" + str(
-    #         todaysDateDateTime.day) + "T01:01:00Z" + '"'
-    # if todaysDateDateTime.day >= 10 and todaysDateDateTime.month >= 10:
-    #     gts = '"' + str(lastyear) + "-" + str(todaysDateDateTime.month) + "-" + str(
-    #         todaysDateDateTime.day) + "T01:01:00Z" + '"'
+    #create github timestamp of last year's date
+    todaysDateDateTime = date.today()
+    lastyear = todaysDateDateTime.year - 1
+    # format time stamp accordingly as a string
+    gts = ""
+    if todaysDateDateTime.day < 10 and todaysDateDateTime.month < 10:
+        gts = '"' + str(lastyear) + "-0" + str(todaysDateDateTime.month) + "-0" + str(
+            todaysDateDateTime.day) + "T01:01:00Z" + '"'
+    if todaysDateDateTime.day < 10 and todaysDateDateTime.month >= 10:
+        gts = '"' + str(lastyear) + "-" + str(todaysDateDateTime.month) + "-0" + str(
+            todaysDateDateTime.day) + "T01:01:00Z" + '"'
+    if todaysDateDateTime.day >= 10 and todaysDateDateTime.month < 10:
+        gts = '"' + str(lastyear) + "-0" + str(todaysDateDateTime.month) + "-" + str(
+            todaysDateDateTime.day) + "T01:01:00Z" + '"'
+    if todaysDateDateTime.day >= 10 and todaysDateDateTime.month >= 10:
+        gts = '"' + str(lastyear) + "-" + str(todaysDateDateTime.month) + "-" + str(
+            todaysDateDateTime.day) + "T01:01:00Z" + '"'
 
-    # query1 = "{\n" + f"\trepository(owner: \"{owner}\", name: \"{name}\")" + " { \n" + "\t ref(qualifiedName:" + f" \"{master}\")" + \
-    #     " { " + "\n\t\ttarget { \n\t\t ... on Commit {\n\t" + \
-    #     f"history(since:{gts})" + \
-    #     "{\n\t\tedges{\n\t\tnode{\n\t\tmessageHeadline\n\t\t}}\n\t\t}}}}}\n\t\t}"
+    query1 = "{\n" + f"\trepository(owner: \"{owner}\", name: \"{name}\")" + " { \n" + "\t ref(qualifiedName:" + f" \"{master}\")" + \
+        " { " + "\n\t\ttarget { \n\t\t ... on Commit {\n\t" + \
+        f"history(since:{gts})" + \
+        "{\n\t\ttotalCount\n\t\t}}}}}\n\t\t}"
 
-    # req = requests.post(url='https://api.github.com/graphql',
-    #                     json={'query': query1}, headers=header)
-    # result = req.json()
 
-    timestamp = (date.today() - timedelta(days=365)
-                 ).strftime('%Y-%m-%dT%H:%M:%SZ')
-    url = f'https://api.github.com/repos/{owner}/{name}/commits?sha=main&since={timestamp}'
-    response = requests.get(url=url, headers=header)
-    result = response.json()
-    print("hereeee")
-    print(result)
+    req = requests.post(url='https://api.github.com/graphql',
+                        json={'query': query1}, headers=header)
+    result = req.json()
 
     if not result:
         return None
