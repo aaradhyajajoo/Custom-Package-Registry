@@ -27,14 +27,14 @@ import re
 # Package Endpoint
 '''Global Variable(s)'''
 PROJECT_ID = "ece-461-ae1a9"
-PORT_NUMBER = 8085
+PORT_NUMBER = 8080
 
 '''Inits'''
 err = Err_Class()  # Errors
 app = Flask(__name__)  # Initializing Flask app
-decode_service_account()
-cred = credentials.Certificate("service_account.json")
-firebase_admin.initialize_app(cred,options={
+# decode_service_account()
+# cred = credentials.Certificate("service_account.json")
+firebase_admin.initialize_app(options={
 # firebase_admin.initialize_app(options={
     'databaseURL': f'https://{PROJECT_ID}-default-rtdb.firebaseio.com'
 })
@@ -333,7 +333,7 @@ def list_of_packages():
 
     if len(save) == 0:
         return err.package_doesNot_exist()
-    
+
 
 
     print("Packages endpoint is working.")

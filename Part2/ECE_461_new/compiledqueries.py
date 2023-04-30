@@ -1,5 +1,5 @@
 import requests
-from datetime import date
+from datetime import date, timedelta
 import os
 
 token2 = ""
@@ -45,14 +45,13 @@ def getBusFactorScore(owner, name):
     owner = '"' + f"{owner}" + '"'
     name = '"' + f"{name}" + '"'
 
-    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})\n" + \
-        "\t{ mentionableUsers{\n\ttotalCount\n}\n}\n}"
+    query1 = "query { \n\t repository(owner: " + owner + ", name: " + name + \
+        "){\n\t\t mentionableUsers(first: 100) {\n\t\t\t totalCount\n\t\t}\n\t}\n}"
 
     # req=requests.get(url='https://api.github.com/graphql', auth=(username,token)) headers=header
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
 
-    print(f'Request = {req.text}')
     if req is None:
         return None
     result = req.json()
@@ -105,11 +104,11 @@ def getCorrectnessScore(owner, name):
 
 # measures responsive maintainers score by seeing if there have been commits within the last year (0 or 1)
 def getResponsiveMaintainersScore(owner, name):
-    owner = '"' + f"{owner}" + '"'
-    name = '"' + f"{name}" + '"'
-    master = '"' + "master" + '"'
+  #  owner = '"' + f"{owner}" + '"'
+   # name = '"' + f"{name}" + '"'
+    master = "master"
 
-    # create github timestamp of last year's date
+    #create github timestamp of last year's date
     todaysDateDateTime = date.today()
     lastyear = todaysDateDateTime.year - 1
     # format time stamp accordingly as a string
@@ -127,18 +126,20 @@ def getResponsiveMaintainersScore(owner, name):
         gts = '"' + str(lastyear) + "-" + str(todaysDateDateTime.month) + "-" + str(
             todaysDateDateTime.day) + "T01:01:00Z" + '"'
 
-    query1 = "{\n" + f"\trepository(owner: {owner}, name: {name})" + " { \n" + "\t ref(qualifiedName:" + f" {master})" + \
+    query1 = "{\n" + f"\trepository(owner: \"{owner}\", name: \"{name}\")" + " { \n" + "\t ref(qualifiedName:" + f" \"{master}\")" + \
         " { " + "\n\t\ttarget { \n\t\t ... on Commit {\n\t" + \
-        f"history(since:{gts})" + "{" + "\n\t\ttotalCount}}}}}\n\t\t}"
+        f"history(since:{gts})" + \
+        "{\n\t\ttotalCount\n\t\t}}}}}\n\t\t}"
+
 
     req = requests.post(url='https://api.github.com/graphql',
                         json={'query': query1}, headers=header)
     result = req.json()
+    if not result:
+        return None
     if 'message' in result.keys():
         if result['message'] == 'Bad credentials':
             return 0
-    if not result:
-        return None
     if result['data']['repository'] is None or result['data']['repository']['ref'] is None:
         return 0
     numCommits = result['data']['repository']['ref']['target']['history']['totalCount']
