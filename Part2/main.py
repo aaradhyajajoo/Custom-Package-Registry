@@ -59,10 +59,10 @@ def create():
 
     # Gets the JSON data from the request
     data = request.get_json()
+    print(f'data in /package: {data}', flush=True)
     # Checking error 404
     if not data:
         if 'URL' not in data.keys() and 'Content' not in data.keys():
-            print('Could not find URL and Content')
             return err.missing_fields()
 
     url_check = False
@@ -73,11 +73,9 @@ def create():
     if 'URL' in data.keys() and 'Content' in data.keys():
         str_value_content = str(data['Content'])
         str_value_url = str(data['URL'])
-        if data['URL'] is not None and (str_value_content == 'None' or str_value_content == 'null') :
-            print('URL is set - Rating is required')
+        if data['URL'] is not None and (str_value_content == 'None' or str_value_content == 'null'):
             url_check = True
             url = data['URL']
-            print(f'URL that is being checked: {url}')
             if 'npm' in url:
                 package_json = rate.get_package_json(url, 'npm')
                 ty = 'npm'
@@ -85,12 +83,10 @@ def create():
                 owner, repo, ty = rate.extract_repo_info(url)
             else:
                 return err.malformed_req()
-        
+
         elif data['Content'] is not None and (str_value_url == 'None' or str_value_url == 'null'):
-            print('Content is set - Rating is not required')
             content = data['Content']
             url = rate.get_decoded_content(content)
-            print(f'URL that is being checked: {url}')
             if 'npm' in url:
                 package_json = rate.get_package_json(url, 'npm')
                 ty = 'npm'
@@ -101,14 +97,12 @@ def create():
             else:
                 return err.missing_fields()
         else:
-            print('Either one is not None')
             return err.missing_fields()
 
     file_path = "package.json"
 
     # Construct the API URL for the package.json file
     if ty == 'github':
-        print('Package from github')
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
         package_json = rate.get_package_json(api_url, 'github')
         if not package_json:
@@ -121,7 +115,6 @@ def create():
         ID = f"{name}_{version}"
 
     elif ty == 'npm':
-        print('Package from npm')
         if not package_json:
             err.malformed_req()
         name = package_json['name']
@@ -135,53 +128,42 @@ def create():
     if url_check:
         # Need to check error 424
         owner, name, ty = rate.extract_repo_info(url)
-        print(f'Owner is {owner} and Name is {name}')
         if owner is None or name is None or ty is None:
             # Error 500 (Did not find owner or repo) marcelklehr,nodist
-            print("Could not find owner or repo")
             return err.unexpected_error('the URL')
 
         #  Calculate metrics (5 metrics from Part 1 and 2 new metrics
         code_review = rate.calculate_review_fraction(owner, name)
         if code_review is None:
-            print('Code review chokes')
             return err.unexpected_error('CodeReviewFractiom')
         dependency = rate.calculate_dependency_metric(package_json, version)
         if dependency is None:
-            print('Dependency chokes')
             return err.unexpected_error('GoodPinningPractice')
         bus_factor = compiledqueries.getBusFactorScore(owner, name)
         if bus_factor is None:
-            print('Bus Factor chokes')
             return err.unexpected_error('BusFactor')
         # elif bus_factor == -1:
-        #     print('Bus Factor chokes with Bad creds')
         #     return err.unexpected_error('BusFactor')
         responsiveness = compiledqueries.getResponsiveMaintainersScore(
             owner, name)
         if responsiveness is None:
-            print('Responsiveness chokes')
             return err.unexpected_error('Responsiveness')
         correctness = compiledqueries.getCorrectnessScore(owner, name)
         if correctness is None:
-            print('Correctness chokes')
             return err.unexpected_error('Correctness')
 
         license_score = rate.licenseScore(owner, name)
         if license_score is None:
-            print('LicenseScore chokes')
             return err.unexpected_error('LicenseScore')
         ramp_up = rate.calculate_ramp_up_score(owner, name)
 
         if ramp_up is None:
-            print('Ramp Up chokes')
             return err.unexpected_error('RampUp')
 
         net_score = 0.7 * (compiledqueries.calcFinalScore(bus_factor, license_score, correctness,
                                                           ramp_up, responsiveness, owner)) + 0.2 * dependency + 0.1 * code_review
         if net_score is None:
             # Calculations for metrics choked
-            print('Net Score chokes')
             return err.unexpected_error('NetScore')
 
         metric_dict = {}
@@ -196,10 +178,9 @@ def create():
                        'NetScore': net_score
                        }
 
-        print(f'See metric_dict: {metric_dict}')
         if net_score < 0.5:
             print(f'Disqualified score. See metric_dict: {metric_dict}')
-            return err.disqualified_rating(key)
+            return err.disqualified_rating(name)
 
     package = {
         'metadata': metadata,
@@ -232,8 +213,7 @@ def create():
             if str_value_url != 'None':
                 # Check if (URL does not exist in the DB) or if (it does then the one being uploaded is different)
                 if (metadata == json_store[firebaseID]['metadata'] and str(json_store[firebaseID]['data']['URL'])) == 'None' or \
-                        (metadata == json_store[firebaseID]['metadata'] and str(json_store[firebaseID]['data']['URL'])!='None' and data_field['URL'] != json_store[firebaseID]['data']['URL']):
-                    print('Ingestion required')
+                        (metadata == json_store[firebaseID]['metadata'] and str(json_store[firebaseID]['data']['URL']) != 'None' and data_field['URL'] != json_store[firebaseID]['data']['URL']):
                     ref = db.reference('packages/' + firebaseID)
                     update_data = {
                         'data': {
@@ -254,7 +234,6 @@ def create():
         else:
             return err.package_exists()
 
-    print("Package is created successfully.")
     return json.dumps(package), 201
 
 # Curl requests: curl --location 'http://127.0.0.1:8080/packages?offset=2' --header 'X-Authorization: bearer \
@@ -274,7 +253,7 @@ def list_of_packages():
 
     # Gets package query from request body
     package_queries = request.json
-    print(f'Packages to be queried = {package_queries}')
+    print(f'package queries in /packages: {package_queries}', flush=True)
     offset = request.args.get('offset', default=0, type=int)
 
     # Default offset is 1 page
@@ -330,9 +309,6 @@ def list_of_packages():
     if len(save) == 0:
         return err.package_doesNot_exist()
 
-
-
-    print("Packages endpoint is working.")
     return json.dumps(save), 200
 
 # Test Command: curl --location --request DELETE 'http://127.0.0.1:8080/reset' --header /
@@ -350,7 +326,6 @@ def reset_registry():
     #     return err.no_permission()
     ref = db.reference('packages')
     ref.delete()
-    print("Reset endpoint is working.")
     return json.dumps('Registry is reset.'), 200
 
 # GET, PUT, DELETE - Package with given ID in endpoint
@@ -363,16 +338,14 @@ def package_given_id(id):
     # authorization = request.headers.get("X-Authorization")
     # if authorization is None:
     #     return err.auth_failure(bad_creds)
-    # print(f"Request headers in /package/<id>:{request.headers}")
-
     if request.method == 'GET':
-        print("Get for package with given ID is working.")
+        print(f'get id in /package/<id>: {id}', flush=True)
         return PackageRetrieve(id)
     if request.method == 'PUT':
-        print("Put for package with given ID is working.")
+        print(f'put id in /package/<id>: {id}', flush=True)
         return PackageUpdate(id)
     if request.method == 'DELETE':
-        print("Delete for package with given ID is working.")
+        print(f'delete id in /package/<id>: {id}', flush=True)
         return PackageDelete(id)
 
 
@@ -389,7 +362,6 @@ def PackageRetrieve(id):
     if not all_packages:
         return err.package_doesNot_exist()
 
-
     for p_data in all_packages.values():
         metadata = p_data['metadata']
         if id == metadata['ID']:
@@ -400,7 +372,6 @@ def PackageRetrieve(id):
         return err.package_doesNot_exist()
 
     data_field = p_data['data']
-    print(f'data_field = {data_field}')
     if 'Content' in data_field.keys():
         str_value_content = data_field['Content']
     if 'URL' in data_field.keys():
@@ -413,7 +384,6 @@ def PackageRetrieve(id):
         try:
             decoded_content = base64.b64decode(content)
         except binascii.Error:
-            print('Binascii error')
             return err.malformed_req()
 
         if not os.path.exists(directory):
@@ -427,9 +397,6 @@ def PackageRetrieve(id):
         return json.dumps(p_data), 200
 
 
-         
-
-
 # Correct: curl -X 'PUT' 'http://127.0.0.1:8080/package/underscore' -H 'accept: */*' -H 'X-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' -H 'Content-Type: application/json' -d '{"metadata": {"Name": "Underscore","Version": "1.0.0","ID": "underscore"},"data": {"URL": "string","JSProgram": "string"}}'
 def PackageUpdate(id):
     ref = db.reference('packages')
@@ -439,7 +406,6 @@ def PackageUpdate(id):
         return err.package_doesNot_exist()
 
     data = request.json
-    print(f'data = {data}')
     id_exists = False
 
     # As per PackageUpdate, only one field must be set
@@ -478,7 +444,7 @@ def PackageUpdate(id):
                     'Content': data['data']['Content'],
                     'JSProgram': data['data']['JSProgram']
                 }
-            }   
+            }
 
     ref.update(update_data)  # Updates DB
     return json.dumps({'message': 'Version is updated.'}), 200
@@ -518,7 +484,7 @@ def metric_rate(id):
     #     with open("Testing/test14rate.json", "w") as outfile:
     #         json.dump({"message": "Authentication failed."}, outfile)
     #     return err.auth_failure()
-
+    print(f'id in /package/<id>/rate: {id}', flush=True)
 
     str_value_content = 'None'
     str_value_url = 'None'
@@ -551,13 +517,12 @@ def metric_rate(id):
         return err.package_doesNot_exist()
 
     data = package_data['data']
-    print(f"data = {data}")
 
     if 'Content' in data.keys():
         str_value_content = str(data['Content'])
     if 'URL' in data.keys():
         str_value_url = str(data['URL'])
-        
+
     # Decodes the encoded content field from Data. Also checks if there is no URL in meta data
     if str_value_content != 'None' and str_value_url == 'None':
         content = data['Content']
@@ -635,7 +600,6 @@ def metric_rate(id):
                    'NetScore': net_score
                    }
 
-
     with open("Testing/test14rate.json", "w") as outfile:
         json.dump(metric_dict, outfile)
     return json.dumps(metric_dict), 200
@@ -648,7 +612,6 @@ def index():
 
 @app.route('/authenticate', methods=['PUT'])
 def authenticate():
-    print("Hit authenticate endpoint")
     return err.no_authentication()
 
 
@@ -656,6 +619,8 @@ def authenticate():
 def package_by_regex():
     # format the regex to make it compatible with code.
     r = request.json
+    print(f'r in /package/byRegEx: {r}', flush=True)
+
     regex_pattern = r['RegEx']
     if not regex_pattern:
         return err.missing_fields()
@@ -667,12 +632,12 @@ def package_by_regex():
         return err.package_doesNot_exist()
 
     # get the packages from the regex
-    matched_packages = regex.search_packages_by_regex(regex_pattern, all_packages)
+    matched_packages = regex.search_packages_by_regex(
+        regex_pattern, all_packages)
 
     # Checking error 404
     if len(matched_packages) == 0:
         return err.package_doesNot_exist()
-
 
     # JSON format
     response = []

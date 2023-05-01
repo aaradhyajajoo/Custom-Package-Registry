@@ -166,7 +166,6 @@ def licenseScore(owner, repo_name):
         url = f"https://api.github.com/repos/{owner}/{repo_name}"
         headers = {"Accept": "application/vnd.github.v3+json"}
         res = requests.get(url, headers=headers)
-        print(f'res = {res}')
         data = res.json()
         license_info = data["license"]
         license_key = license_info["key"]
@@ -220,5 +219,4 @@ def calculate_ramp_up_score(owner, repo):
         rampup_time = 1
     else:
         rampup_time = 0
-    print(f'Ramp_up = {rampup_time}')
     return rampup_time
