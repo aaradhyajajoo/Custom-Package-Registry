@@ -5,7 +5,7 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '[
   {
-    "Version": "0.9.1",
-    "Name": "nodist"
+    "Version": "4.2.3",
+    "Name": "fecha"
   }
 ]'
